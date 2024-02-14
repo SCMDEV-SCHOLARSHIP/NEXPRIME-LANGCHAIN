@@ -1,8 +1,7 @@
 # NEXPRIME-LANGCHAIN
-
 ## Tools
 <div align="center">
-
+    
 [![Python](https://img.shields.io/badge/python-3.11.7-34d058?logo=python)](https://www.python.org/downloads/release/python-3117/)
 [![FastAPI](https://img.shields.io/badge/fastapi-v0.109.2-34d058?logo=fastapi)](https://fastapi.tiangolo.com/)
 [![LangChain](https://img.shields.io/badge/%F0%9F%A6%9C%EF%B8%8Flangchain-v0.1.6-34d058)](https://www.langchain.com/)
