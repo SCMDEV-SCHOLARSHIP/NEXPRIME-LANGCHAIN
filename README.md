@@ -5,7 +5,7 @@
 
 [![Python](https://img.shields.io/badge/python-3.11.7-34d058?logo=python)](https://www.python.org/downloads/release/python-3117/)
 [![FastAPI](https://img.shields.io/badge/fastapi-v0.109.2-34d058?logo=fastapi)](https://fastapi.tiangolo.com/)
-[![LangChain](https://img.shields.io/badge/%F0%9F%A6%9C%EF%B8%8Flangchain-v0.1.6-34d058)](https://www.langchain.com/)
+[![LangChain](https://img.shields.io/badge/%F0%9F%A6%9C%EF%B8%8Flangchain-v0.1.7-34d058)](https://www.langchain.com/)
 [![Uvicorn](https://img.shields.io/badge/uvicorn-0.27.1-34d058?logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPCEtLSBSZXBsYWNlIHRoZSBjb250ZW50cyBvZiB0aGlzIGVkaXRvciB3aXRoIHlvdXIgU1ZHIGNvZGUgLS0%2BCgo8c3ZnIHJvbGU9ImltZyIgdmlld0JveD0iMCAwIDI0IDI0IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgogIDxwYXRoIGQ9Ik0xMiA4YTMgMyAwIDAgMCAzLTMgMyAzIDAgMCAwLTMtMyAzIDMgMCAwIDAtMyAzIDMgMyAwIDAgMCAzIDNtMCAzLjU0QzkuNjQgOS4zNSA2LjUgOCAzIDh2MTFjMy41IDAgNi42NCAxLjM1IDkgMy41NCAyLjM2LTIuMTkgNS41LTMuNTQgOS0zLjU0VjhjLTMuNSAwLTYuNjQgMS4zNS05IDMuNTRaIj48L3BhdGg%2BCjwvc3ZnPg%3D%3D&logoColor=white)](https://www.uvicorn.org/)<br>
 [![OpenAI](https://img.shields.io/badge/openai-412991?style=for-the-badge&logo=openai)](https://openai.com/)
 [![PostgreSQL](https://img.shields.io/badge/postgresql-008bb9?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
@@ -22,7 +22,7 @@ Link: https://www.python.org/downloads/releasepython-3117<br>
 > $ python --version  # for windows OS
 > Python 3.11.7
 > $ pip --version
-> pip 24.0 from <your-pip-path> (python 3.11)
+> pip 24.0 from YOUR-PIP-PATH (python 3.11)
 > ```
 
 _Install_ `pipenv` to manage the project virtual environment. Don't forget to check.
@@ -36,7 +36,7 @@ pipenv, version 2023.12.1
 
 _Make_ a virtual environment and install packages in your local project directory. The name is automatically created based on the project folder name.
 ```bash
-$ cd <your-project-directory>
+$ cd YOUR-PRJ-PATH
 $ pipenv --python 3.11.7 sync
 ```
 
@@ -53,7 +53,7 @@ $ pipenv graph
 - You $\textsf{\color{red}MUST}$ carefully distinguish the package installation environment.
     - For testing, personal use or not allowed, install into the custom $\textsf{\color{darksalmon}personal}$ group without synchronization with `pipfile.lock`. If you want uninstall packages in this category, check the guide document in Confluence.
         ```bash
-        pipenv install <package> --categories=personal --skip-lock
+        $ pipenv install PACKAGES --categories=personal --skip-lock
         ```
     - After discussion with team members, they will be imported into the $\textsf{\color{palegreen}default}$ or $\textsf{\color{violet}dev}$ group.
 - Packages that manage DB and vector store have $\textsf{\color{red}NOT}$ been installed yet. Updates will be made later.
