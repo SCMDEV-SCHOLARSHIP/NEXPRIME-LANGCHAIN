@@ -37,7 +37,7 @@ pipenv, version 2023.12.1
 _Make_ a virtual environment and install packages in your local project directory. The name is automatically created based on the project folder name.
 ```bash
 $ cd <your-project-directory>
-$ pipenv --python 3.11.7 install --dev --ignore-pipfile
+$ pipenv --python 3.11.7 sync
 ```
 
 `pipenv` provides two package categories: $\textsf{\color{palegreen}default}$ and $\textsf{\color{violet}dev}$. We use both when developing including custom category $\textsf{\color{darksalmon}personal}$.<br>
@@ -51,7 +51,7 @@ $ pipenv graph
 
 ## Note
 - You $\textsf{\color{red}MUST}$ carefully distinguish the package installation environment.
-    - For testing, personal use or not allowed, install into the custom $\textsf{\color{darksalmon}personal}$ group without synchronization with `pipfile.lock`.
+    - For testing, personal use or not allowed, install into the custom $\textsf{\color{darksalmon}personal}$ group without synchronization with `pipfile.lock`. If you want uninstall packages in this category, check the guide document in Confluence.
         ```bash
         pipenv install <package> --categories=personal --skip-lock
         ```
