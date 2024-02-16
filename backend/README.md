@@ -44,4 +44,4 @@
 - Python은 상수(재정의 불가 값) 정의가 복잡해서, `constants.py` 파일에 간단한 상수 정의 예시가 있습니다.
 
 ## Reference
-- [참고 구조](https://github.com/tiangolo/full-stack-fastapi-postgresql/tree/master/src/backend/app/app)
+- [참고 구조](https://github.com/tiangolo/full-stack-fastapi-postgresql)
