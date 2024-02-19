@@ -1,22 +1,19 @@
-from fastapi import FastAPI
 from pathlib import Path
+
+from langchain_community.document_loaders.base import BaseLoader
 from langchain.document_loaders.word_document import Docx2txtLoader
 from langchain.document_loaders.text import TextLoader
+
+from langchain_core.embeddings import Embeddings
 from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.embeddings.azure_openai import AzureOpenAIEmbeddings
-from typing import TypeAlias
-from langchain.vectorstores import VectorStore
-from langchain.vectorstores.qdrant import Qdrant
 
 from ..schemas.embedding_schema import BaseEmbeddingInfo, BaseVectorStoreInfo
 from ..cores.config import settings
+from ..database import CRUD
+from ..database.qdrant_crud import QdrantCRUD
 
 
-LoderType: TypeAlias = Docx2txtLoader | TextLoader
-EmbeddingType: TypeAlias = OpenAIEmbeddings | AzureOpenAIEmbeddings
-
-
-def get_loader(file_path: str) -> LoderType:
+def get_loader(file_path: str) -> BaseLoader:
     ext = Path(file_path).suffix
     if ext == ".txt":
         return TextLoader(file_path)
@@ -26,7 +23,7 @@ def get_loader(file_path: str) -> LoderType:
         raise Exception("document loader error")
 
 
-def get_embedding(info: BaseEmbeddingInfo) -> EmbeddingType:
+def get_embedding(info: BaseEmbeddingInfo) -> Embeddings:
     if info.engine == "openai":
         return OpenAIEmbeddings(
             model=info.model,
@@ -36,6 +33,8 @@ def get_embedding(info: BaseEmbeddingInfo) -> EmbeddingType:
         raise Exception("embedding model error")
 
 
-def get_vectorstore(info: BaseVectorStoreInfo) -> VectorStore:
+def get_vectorstore_crud(info: BaseVectorStoreInfo) -> type[CRUD]:
     if info.engine == "qdrant":
-        return
+        return QdrantCRUD
+    else:
+        raise Exception("vectorstore error")

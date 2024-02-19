@@ -1,9 +1,16 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+
+
+class BaseFileInfo(BaseModel):
+    file_path: str
+    category: str
+    subject: str | None = None
 
 
 class BaseVectorStoreInfo(BaseModel):
     engine: str
     collection: str
+    recreate: bool = False
 
 
 class BaseEmbeddingInfo(BaseModel):
@@ -12,19 +19,18 @@ class BaseEmbeddingInfo(BaseModel):
 
 
 class EmbeddingRequest(BaseModel):
-    file_path: str
+    files: list[BaseFileInfo]
     embedding_model: BaseEmbeddingInfo
     vectorstore: BaseVectorStoreInfo
 
 
-class DocumentDTO(BaseModel):
+class DocumentMetaSchema(BaseModel):
     file_path: str
-    file_name: str
-    ext: str
+    file_name: str = Field(alias="name")
+    total_split: int
+    ids: list[str]
 
 
 class EmbeddingPostResponse(BaseModel):
-    filepath: str
-    split_count: int
-    ids: list[int]
-    endpoint: int | str
+    collection: str
+    results: list[DocumentMetaSchema]

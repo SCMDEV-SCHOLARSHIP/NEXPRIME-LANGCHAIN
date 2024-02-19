@@ -23,11 +23,9 @@ class BasePath(StrEnum):
     ENVS = as_posix(BACKEND, "envs")
 
 
-class Engines(ExtendedStrEnum):
+class SupportedLLMEngines(ExtendedStrEnum):
     OPENAI = "openai"
 
 
-class OpenaiEmbeddingModels(ExtendedStrEnum):
-    LARGE_V3 = "text-embedding-3-large"
-    SMALL_V3 = "text-embedding-3-small"
-    V2_ADA = "text-embedding-ada-002"
+class SupportedVectorStores(ExtendedStrEnum):
+    QDRANT = "qdrant"
