@@ -1,35 +1,16 @@
 from fastapi import APIRouter
-from pathlib import Path
 
-from ..schemas.embedding_schema import EmbeddingRequest, DocumentDTO
-from ..services.embedding_service import embed_document as run_embedding
-
-
-router = APIRouter(prefix="/embeddings/document")
+from ..schemas.embedding_schema import EmbeddingRequest, EmbeddingPostResponse
+from ..services.embedding_service import embed_documents as run_embedding
 
 
-@router.post("/")
-def embed_new_document(emb_req: EmbeddingRequest):
-    file_path = emb_req.file_path
-    fpath = Path(file_path)
-    document = DocumentDTO(
-        file_path=file_path,
-        file_name=fpath.name,
-        ext=fpath.suffix,
+router = APIRouter(prefix="/embeddings/documents")
+
+
+@router.post("/", response_model=EmbeddingPostResponse)
+def embed_new_documents(emb_req: EmbeddingRequest):
+    results = run_embedding(emb_req)
+    return EmbeddingPostResponse(
+        collection=emb_req.vectorstore.collection,
+        results=results,
     )
-    run_embedding(document, emb_req)
-    return "hi"
-
-
-"""
-@router.put("/")
-def modify_document(
-    file: None,
-    model=None,
-    vector_db=None,
-):  # 임베딩 바디 데이터 받아서 처리
-    # vs에 저장된 id를 찾아서 삭제하고 재생성
-    # 모델을 수정하거나, vdb를 수정하거나 등등
-    result = None  # 처리 함수 호출
-    return result  # 결과 직렬화
-"""
