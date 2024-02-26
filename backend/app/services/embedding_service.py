@@ -1,64 +1,77 @@
 from pathlib import Path
 from langchain.text_splitter import CharacterTextSplitter
 
-from ..cores.dependencies import get_loader, get_embedding, get_vectorstore_crud
-from ..schemas.embedding_schema import EmbeddingRequest, DocumentMetaSchema
+import app.cores.dependencies as deps
+import app.schemas.embedding_schema as schema
+
+
+from ..cores.utils import gen_id
 from ..models.document import DocumentMeta
 
 
-def embed_documents(emb_req: EmbeddingRequest) -> list[DocumentMetaSchema]:
-    embedding_model = get_embedding(emb_req.embedding_model)
-    vectorstore = get_vectorstore_crud(emb_req.vectorstore)(
-        embedding_model=embedding_model,
-        info=emb_req.vectorstore,
+def embed_doc(emb_req: schema.EmbeddingFile) -> schema.DocumentMetaSchema:
+    embedding_model = deps.get_embedding(emb_req.model)
+    vectorstore = deps.get_vectorstore_crud()(
+        collection_name=emb_req.collection, embedding_model=embedding_model
     )
-    results: list[DocumentMetaSchema] = []
-    for f in emb_req.files:
-        path = Path(f.file_path)
-        loader = get_loader(f.file_path)
-        loaded_documents = loader.load()
-        text_splitter = CharacterTextSplitter(
-            separator="\n\n",
-            chunk_size=1000,
-            chunk_overlap=200,
-            length_function=len,
-            is_separator_regex=False,
+    collection_recreate = emb_req.collection_recreate
+    file = emb_req.file
+    path = Path(file.source)
+    loader = deps.get_loader(file.source)
+    loaded_documents = loader.load()
+    text_splitter = CharacterTextSplitter(
+        separator="\n\n",
+        chunk_size=1000,
+        chunk_overlap=200,
+        length_function=len,
+        is_separator_regex=False,
+    )
+    splitted_documents = text_splitter.split_documents(loaded_documents)
+    total_split = len(splitted_documents)
+    metadatas = [
+        DocumentMeta(
+            **file.model_dump(),
+            file_id=gen_id(file.source),
+            name=path.name,
+            stem=path.stem,
+            ext=path.suffix,
+            total_split=total_split,
+            split_number=i,
         )
-        splitted_documents = text_splitter.split_documents(loaded_documents)
-        total_split = len(splitted_documents)
-        metadatas = [
-            DocumentMeta(
-                **f.model_dump(),
-                name=path.name,
-                stem=path.stem,
-                ext=path.suffix,
-                total_split=total_split,
-                split_number=i,
-            )
-            for i in range(1, total_split + 1)
-        ]
-        uuid_results = vectorstore.create(splitted_documents, metadatas=metadatas)
-        vectorstore.info.recreate = False
-        results.append(
-            DocumentMetaSchema(
-                file_path=f.file_path,
-                name=path.name,
-                total_split=total_split,
-                ids=uuid_results,
-            )
-        )
-    return results
-    """url = settings.vectorstore.url
-    qdrant = Qdrant.from_documents(
+        for i in range(1, total_split + 1)
+    ]
+    uuid_results = vectorstore.create(
         splitted_documents,
-        embedding_model,
-        url=url,
-        collection_name=emb_req.vectorstore.collection,
-        force_recreate=True,
-    )"""
-    """
-        qdrant = Qdrant(
-        client=QdrantClient("localhost"),
-        collection_name="sample_2",
-        embeddings=get_embedding(emb_req.embedding_model)
-    )"""
+        metadatas=metadatas,
+        collection_recreate=collection_recreate,
+    )
+    return schema.DocumentMetaSchema(
+        file_id=metadatas[0].file_id,
+        source=file.source,
+        name=path.name,
+        total_split=total_split,
+        point_ids=uuid_results,
+    )
+
+
+def embed_docs(emb_req: schema.EmbeddingFiles) -> list[schema.DocumentMetaSchema]:
+    collection_recreate = emb_req.collection_recreate
+    results: list[schema.DocumentMetaSchema] = []
+    from app.services.collection_service import search_doc
+
+    for f in emb_req.files:
+        if collection_recreate == False and search_doc(
+            emb_req.collection, gen_id(f.source)
+        ):
+            print("file already exist")  # logging으로 넘기거나, 다른 로직 추가 가능
+            continue
+        single_req = schema.EmbeddingFile(
+            file=f,
+            model=emb_req.model,
+            collection=emb_req.collection,
+            collection_recreate=collection_recreate,
+        )
+        meta = embed_doc(single_req)
+        collection_recreate = False
+        results.append(meta)
+    return results

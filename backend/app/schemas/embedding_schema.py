@@ -1,36 +1,61 @@
 from pydantic import BaseModel, Field
 
+import app.cores.common_types as types
 
-class BaseFileInfo(BaseModel):
-    file_path: str
+
+class DocumentInfo(BaseModel, extra="forbid"):
+    source: str
     category: str
     subject: str | None = None
 
 
-class BaseVectorStoreInfo(BaseModel):
-    engine: str
-    collection: str
-    recreate: bool = False
-
-
-class BaseEmbeddingInfo(BaseModel):
-    engine: str
+class BaseEmbeddingRequest(BaseModel, extra="forbid"):
     model: str
+    collection: str
 
 
-class EmbeddingRequest(BaseModel):
-    files: list[BaseFileInfo]
-    embedding_model: BaseEmbeddingInfo
-    vectorstore: BaseVectorStoreInfo
+class SingleDocument(BaseEmbeddingRequest, extra="forbid"):
+    file: DocumentInfo
 
 
-class DocumentMetaSchema(BaseModel):
-    file_path: str
+class BatchDocuments(BaseEmbeddingRequest, extra="forbid"):
+    files: list[DocumentInfo]
+
+
+class EmbeddingFile(SingleDocument, extra="forbid"):
+    collection_recreate: bool = False
+
+
+class EmbeddingFiles(BatchDocuments, extra="forbid"):
+    collection_recreate: bool = False
+
+
+class DocumentMetaSchema(BaseModel, extra="forbid"):
+    file_id: int
+    source: str
     file_name: str = Field(alias="name")
     total_split: int
-    ids: list[str]
+    point_ids: list[str]
 
 
-class EmbeddingPostResponse(BaseModel):
-    collection: str
+class BaseResponse(BaseModel, extra="forbid"): ...
+
+
+class SingleResult(BaseResponse, extra="forbid"):
+    result: BaseModel
+
+
+class BatchResults(BaseResponse, extra="forbid"):
+    results: list[BaseModel]
+
+
+class EmbeddingResult(SingleResult, extra="forbid"):
+    result: DocumentMetaSchema
+
+
+class EmbeddingResults(BatchResults, extra="forbid"):
     results: list[DocumentMetaSchema]
+
+
+class RecordResults(BaseResponse, extra="forbid"):
+    results: list[types.Record] | None = None

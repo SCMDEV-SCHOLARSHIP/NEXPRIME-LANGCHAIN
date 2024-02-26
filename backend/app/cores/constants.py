@@ -23,8 +23,12 @@ class BasePath(StrEnum):
     ENVS = as_posix(BACKEND, "envs")
 
 
-class SupportedLLMEngines(ExtendedStrEnum):
-    OPENAI = "openai"
+class SupportedModels:
+    EMBEDDING: dict[str, str] = {
+        "text-embedding-ada-002": "openai",
+        "text-embedding-3-small": "openai",
+        "text-embedding-3-large": "openai",
+    }
 
 
 class SupportedVectorStores(ExtendedStrEnum):

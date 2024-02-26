@@ -1,8 +1,9 @@
 from pydantic import BaseModel
 
 
-class DocumentMeta(BaseModel):
-    file_path: str
+class DocumentMeta(BaseModel, extra="forbid"):
+    file_id: int
+    source: str
     category: str
     subject: str | None = None
     name: str
