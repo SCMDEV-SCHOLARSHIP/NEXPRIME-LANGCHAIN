@@ -1,13 +1,19 @@
 import uvicorn
-from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 
+from app import create_app
 from app.cores.config import settings
-from app.routers.embedding_router import router as embedding_router
 
 
-app = FastAPI(title=settings.environ.project_name)
-app.include_router(router=embedding_router)
+app = create_app()
+
+
+@app.get("/")
+def show_api_docs():  # 편의 상, 실행 시 바로 api docs로 연결. 나중에 삭제
+    return RedirectResponse("http://localhost:8000/docs")
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="localhost", port=8000, reload=True)
+    uvicorn.run(
+        "main:app", host=settings.environ.host, port=settings.environ.port, reload=True
+    )
