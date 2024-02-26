@@ -1,34 +1,29 @@
-from langchain_core.documents import Document
-from langchain_core.embeddings import Embeddings
 from langchain.vectorstores.qdrant import Qdrant
+from qdrant_client import QdrantClient, models
 
-from . import CRUD
+import app.cores.common_types as types
+
+from .vectorstore_crud import VectorStoreCRUD
 from ..cores.config import settings
 from ..models.document import DocumentMeta
-from ..schemas.embedding_schema import BaseVectorStoreInfo
 
 
-class QdrantCRUD(CRUD):
-    def __init__(
-        self,
-        embedding_model: Embeddings,
-        info: BaseVectorStoreInfo,
-    ) -> None:
-        self.embedding_model = embedding_model
-        self.info = info
+class QdrantCRUD(VectorStoreCRUD):
+    client = QdrantClient(url=settings.vectorstore.url)
 
     def create(
         self,
-        documents: list[Document],
+        documents: list[types.Document],
         metadatas: list[DocumentMeta] | None = None,
+        collection_recreate: bool = False,
     ) -> list[str]:
         texts = [d.page_content for d in documents]
         qdrant: Qdrant = Qdrant.construct_instance(
             texts,
-            self.embedding_model,
+            embedding=self.embedding_model,
             url=settings.vectorstore.url,
-            collection_name=self.info.collection,
-            force_recreate=self.info.recreate,
+            collection_name=self.collection_name,
+            force_recreate=collection_recreate,
         )
         return qdrant.add_texts(
             texts,
@@ -36,3 +31,40 @@ class QdrantCRUD(CRUD):
                 [m.model_dump() for m in metadatas] if metadatas != None else None
             ),
         )
+
+    def read(self, doc_id: int) -> list[types.Record]:
+        results: list[types.Record] = []
+        more_page = None
+        while True:
+            records, more_page = self.__class__.client.scroll(
+                self.collection_name,
+                scroll_filter=models.Filter(
+                    must=[
+                        models.FieldCondition(
+                            key="metadata.file_id",
+                            match=models.MatchValue(value=doc_id),
+                        ),
+                    ]
+                ),
+                offset=more_page,
+            )
+            results.extend(records)
+            if more_page == None:
+                break
+        return results
+
+    def delete(self, doc_id: int) -> None:
+        self.__class__.client.delete(
+            collection_name=self.collection_name,
+            points_selector=models.FilterSelector(
+                filter=models.Filter(
+                    must=[
+                        models.FieldCondition(
+                            key="metadata.file_id",
+                            match=models.MatchValue(value=doc_id),
+                        ),
+                    ],
+                )
+            ),
+        )
+        return
