@@ -8,7 +8,8 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         secrets_dir=BasePath.SECRETS,
     )
-    OPENAI_API_KEY: str
+    OPENAI_API_KEY: SecretStr = Field(frozen=True)
+    SDS_EMBEDDING_URL: SecretStr = Field(frozen=True)
 
 
 class BaseEnvirons(Settings):

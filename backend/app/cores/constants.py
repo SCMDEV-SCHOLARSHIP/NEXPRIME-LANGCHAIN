@@ -25,6 +25,7 @@ class BasePath(StrEnum):
 
 class SupportedLLMEngines(ExtendedStrEnum):
     OPENAI = "openai"
+    SDS_EMBED = "sds-embed"
 
 
 class SupportedVectorStores(ExtendedStrEnum):
