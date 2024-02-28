@@ -2,6 +2,7 @@ from typing import List
 import requests
 from langchain_core.embeddings import Embeddings
 import json
+from ..cores.config import settings
 
 class SDSEmbedding(Embeddings):
 
@@ -12,7 +13,7 @@ class SDSEmbedding(Embeddings):
         pass
 
     def _get_embeded_vectors(self, texts: List[str]) -> List[List[float]]:
-        url = "http://sds-embed.serving.70-220-152-1.sslip.io/v1/models/embed:predict"
+        url = settings.environ.SDS_EMBEDDING_URL.get_secret_value()
         headers = {"Content-Type": "application/json"}
 
         # request body
