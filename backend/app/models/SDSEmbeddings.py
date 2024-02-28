@@ -1,4 +1,3 @@
-from typing import List
 import requests
 from langchain_core.embeddings import Embeddings
 import json
