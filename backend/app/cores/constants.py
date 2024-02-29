@@ -28,6 +28,7 @@ class SupportedModels:
         "text-embedding-ada-002": "openai",
         "text-embedding-3-small": "openai",
         "text-embedding-3-large": "openai",
+        "sds-embed": "sds-embed",
     }
 
 

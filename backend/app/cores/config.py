@@ -5,11 +5,12 @@ from .constants import BasePath
 from .utils import as_posix
 
 
-class SecretSettings(BaseSettings):
+class SecretSettings(BaseSettings): 
     model_config = SettingsConfigDict(
         secrets_dir=BasePath.SECRETS,
     )
     OPENAI_API_KEY: SecretStr = Field(frozen=True)
+    SDS_EMBEDDING_URL: SecretStr = Field(frozen=True)
 
 
 class EnvironInfo(BaseSettings, extra="forbid"):
@@ -65,6 +66,10 @@ class RunSettings:
     @property
     def OPENAI_API_KEY(self) -> str:
         return SecretSettings().OPENAI_API_KEY.get_secret_value()
+    
+    @property
+    def SDS_EMBEDDING_URL(self) -> str:
+        return SecretSettings().SDS_EMBEDDING_URL.get_secret_value()
 
     def _get_environ(self) -> EnvironInfo:
         if self.mode == "dev":
