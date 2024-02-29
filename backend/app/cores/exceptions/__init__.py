@@ -2,7 +2,7 @@ from collections.abc import Callable, Coroutine
 from typing import Any
 from fastapi import Request, Response
 
-from .exceptions import ValueNotExistException, HTTPException
+from .exceptions import ValueNotExistException, HTTPException, StarletteHTTPException
 from app.cores.exceptions import handlers
 
 
