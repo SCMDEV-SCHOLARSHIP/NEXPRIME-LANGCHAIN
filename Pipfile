@@ -15,9 +15,11 @@ pydantic-settings = "==2.2.0"
 docx2txt = "==0.8"
 unstructured = "==0.12.4"
 pypdf = "==4.0.2"
+psycopg2 = "==2.9.9"
 
 [dev-packages]
 pytest = "==8.0.0"
+black = "*"
 
 [requires]
 python_version = "3.11"
