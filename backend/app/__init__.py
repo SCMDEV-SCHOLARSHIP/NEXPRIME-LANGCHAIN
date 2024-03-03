@@ -13,4 +13,7 @@ def create_app() -> FastAPI:
     )
     app.include_router(router=routers.collection_apis, tags=["Collection"])
     app.include_router(router=routers.embedding_apis, tags=["Embedding"])
+
+    # TODO: Remove after test
+    app.include_router(router=routers.test_apis, tags=["Test"])
     return app

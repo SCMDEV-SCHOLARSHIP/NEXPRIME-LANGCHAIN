@@ -5,7 +5,7 @@ from .constants import BasePath
 from .utils import as_posix
 
 
-class SecretSettings(BaseSettings): 
+class SecretSettings(BaseSettings):
     model_config = SettingsConfigDict(
         secrets_dir=BasePath.SECRETS,
     )
@@ -19,6 +19,9 @@ class EnvironInfo(BaseSettings, extra="forbid"):
     host: str = Field(frozen=True)
     port: int = Field(frozen=True)
     url: str = Field(frozen=True)
+    db_url: str = Field(frozen=True)
+    db_username: str = Field(frozen=True)
+    db_password: str = Field(frozen=True)
 
 
 class VectorStoreInfo(BaseSettings, extra="forbid"):
@@ -66,7 +69,7 @@ class RunSettings:
     @property
     def OPENAI_API_KEY(self) -> str:
         return SecretSettings().OPENAI_API_KEY.get_secret_value()
-    
+
     @property
     def SDS_EMBEDDING_URL(self) -> str:
         return SecretSettings().SDS_EMBEDDING_URL.get_secret_value()

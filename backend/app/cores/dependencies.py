@@ -11,7 +11,7 @@ import app.cores.common_types as types
 from ..cores.config import settings
 from ..cores.constants import SupportedModels, SupportedVectorStores
 from ..database import VectorStoreCRUD, QdrantCRUD
-from ..models.SDSEmbeddings import SDSEmbedding
+from ..models.sds_embeddings import SDSEmbedding
 
 
 def get_loader(file_path: str) -> types.BaseLoader:
