@@ -17,9 +17,11 @@ unstructured = "==0.12.4"
 pypdf = "==4.0.2"
 langchain-openai = "==0.0.6"
 langchainhub = "==0.1.14"
+psycopg2 = "==2.9.9"
 
 [dev-packages]
 pytest = "==8.0.0"
+black = "*"
 
 [requires]
 python_version = "3.11"
