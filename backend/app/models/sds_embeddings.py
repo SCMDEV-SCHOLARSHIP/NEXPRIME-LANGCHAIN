@@ -3,6 +3,7 @@ from langchain_core.embeddings import Embeddings
 import json
 from ..cores.config import settings
 
+
 class SDSEmbedding(Embeddings):
 
     def embed_documents(self, texts: list[str]) -> list[list[float]]:
