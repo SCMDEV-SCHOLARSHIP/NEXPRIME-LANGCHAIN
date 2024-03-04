@@ -10,7 +10,7 @@ class DocumentInfo(BaseModel, extra="forbid"):
 
 
 class BaseEmbeddingRequest(BaseModel, extra="forbid"):
-    model: str
+    embedding_model: str
     collection: str
 
 

@@ -2,6 +2,7 @@ from typing import TypeAlias
 from langchain.document_loaders.base import BaseLoader
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
+from langchain_core.messages import BaseMessage
 from qdrant_client import QdrantClient
 import qdrant_client.http.models as qtypes
 

@@ -10,7 +10,7 @@ from ..models.document import DocumentMeta
 
 
 def embed_doc(emb_req: schema.EmbeddingFile) -> schema.DocumentMetaSchema:
-    embedding_model = deps.get_embedding(emb_req.model)
+    embedding_model = deps.get_embedding(emb_req.embedding_model)
     vectorstore = deps.get_vectorstore_crud()(
         collection_name=emb_req.collection, embedding_model=embedding_model
     )
@@ -67,7 +67,7 @@ def embed_docs(emb_req: schema.EmbeddingFiles) -> list[schema.DocumentMetaSchema
             continue
         single_req = schema.EmbeddingFile(
             file=f,
-            model=emb_req.model,
+            embedding_model=emb_req.embedding_model,
             collection=emb_req.collection,
             collection_recreate=collection_recreate,
         )
