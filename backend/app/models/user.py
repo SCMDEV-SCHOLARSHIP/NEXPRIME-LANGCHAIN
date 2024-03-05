@@ -1,6 +1,6 @@
 from sqlalchemy import String, TIMESTAMP
 from sqlalchemy.sql.schema import Column
-from app.database.db_config import Base
+from app.database.rdb.session import Base
 from datetime import datetime
 
 
