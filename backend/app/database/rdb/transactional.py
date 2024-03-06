@@ -43,12 +43,12 @@ class Transactional:
 
         return decorator
 
-    async def _run_required(self, function, args, kwargs) -> None:
+    async def _run_required(self, function, args, kwargs):
         result = await function(*args, **kwargs)
         await session.commit()
         return result
 
-    async def _run_required_new(self, function, args, kwargs) -> None:
+    async def _run_required_new(self, function, args, kwargs):
         session.begin()
         result = await function(*args, **kwargs)
         await session.commit()
