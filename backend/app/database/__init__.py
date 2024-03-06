@@ -1,2 +1,2 @@
-from .vectorstore_crud import VectorStoreCRUD
-from .qdrant_crud import QdrantCRUD
+from langchain.vectorstores import VectorStore
+from .qdrant_crud import ExtendedQdrant

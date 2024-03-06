@@ -12,7 +12,7 @@ from ..models.document import DocumentMeta
 def embed_doc(emb_req: schema.EmbeddingFile) -> schema.DocumentMetaSchema:
     embedding_model = deps.get_embedding(emb_req.embedding_model)
     vectorstore = deps.get_vectorstore_crud()(
-        collection_name=emb_req.collection, embedding_model=embedding_model
+        collection_name=emb_req.collection, embeddings=embedding_model
     )
     collection_recreate = emb_req.collection_recreate
     file = emb_req.file

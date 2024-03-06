@@ -10,7 +10,7 @@ import app.cores.common_types as types
 
 from ..cores.config import settings
 from ..cores.constants import SupportedModels, SupportedVectorStores
-from ..database import VectorStoreCRUD, QdrantCRUD
+from ..database import VectorStore, ExtendedQdrant
 from ..models.sds_embeddings import SDSEmbedding
 
 
@@ -41,9 +41,9 @@ def get_embedding(model_name: str) -> types.Embeddings:
         raise Exception("embedding model error")
 
 
-def get_vectorstore_crud() -> type[VectorStoreCRUD]:
+def get_vectorstore_crud() -> type[VectorStore]:
     vs_name = settings.vectorstore.engine
     if vs_name == SupportedVectorStores.QDRANT:
-        return QdrantCRUD
+        return ExtendedQdrant
     else:
         raise Exception("vectorstore error")

@@ -1,15 +1,34 @@
 from langchain.vectorstores.qdrant import Qdrant
-from qdrant_client import QdrantClient, models
+from qdrant_client import QdrantClient, AsyncQdrantClient
+import qdrant_client.models as rest
 
 import app.cores.common_types as types
 
-from .vectorstore_crud import VectorStoreCRUD
 from ..cores.config import settings
 from ..models.document import DocumentMeta
+from app.models.sds_embeddings import SDSEmbedding
 
 
-class QdrantCRUD(VectorStoreCRUD):
-    client = QdrantClient(url=settings.vectorstore.url)
+class ExtendedQdrant(Qdrant):
+    def __init__(
+        self,
+        collection_name: str,
+        embeddings: types.Embeddings | None = None,
+        distance_strategy: str = "COSINE",
+        vector_name: str | None = None,
+        async_client: AsyncQdrantClient | None = None,
+    ):
+        client = QdrantClient(url=settings.vectorstore.url)
+        if embeddings == None:  # TODO: 예외처리 또는 구조 변경
+            embeddings = SDSEmbedding()
+        super().__init__(
+            client=client,
+            collection_name=collection_name,
+            embeddings=embeddings,
+            distance_strategy=distance_strategy,
+            vector_name=vector_name,
+            async_client=async_client,
+        )
 
     def create(
         self,
@@ -18,14 +37,20 @@ class QdrantCRUD(VectorStoreCRUD):
         collection_recreate: bool = False,
     ) -> list[str]:
         texts = [d.page_content for d in documents]
-        qdrant: Qdrant = Qdrant.construct_instance(
-            texts,
-            embedding=self.embedding_model,
-            url=settings.vectorstore.url,
-            collection_name=self.collection_name,
-            force_recreate=collection_recreate,
-        )
-        return qdrant.add_texts(
+        if collection_recreate == True:  # Qdrant 내부 동작
+            partial_embeddings = self.embeddings.embed_documents([""])
+            vector_size = len(partial_embeddings[0])
+            vectors_config = rest.VectorParams(
+                size=vector_size, distance=rest.Distance[self.distance_strategy]
+            )
+            if self.vector_name is not None:
+                vectors_config = {
+                    self.vector_name: vectors_config,
+                }
+            self.client.recreate_collection(
+                collection_name=self.collection_name, vectors_config=vectors_config
+            )
+        return self.add_texts(
             texts,
             metadatas=(
                 [m.model_dump() for m in metadatas] if metadatas != None else None
@@ -36,13 +61,13 @@ class QdrantCRUD(VectorStoreCRUD):
         results: list[types.Record] = []
         more_page = None
         while True:
-            records, more_page = self.__class__.client.scroll(
+            records, more_page = self.client.scroll(
                 self.collection_name,
-                scroll_filter=models.Filter(
+                scroll_filter=rest.Filter(
                     must=[
-                        models.FieldCondition(
+                        rest.FieldCondition(
                             key="metadata.file_id",
-                            match=models.MatchValue(value=doc_id),
+                            match=rest.MatchValue(value=doc_id),
                         ),
                     ]
                 ),
@@ -54,14 +79,14 @@ class QdrantCRUD(VectorStoreCRUD):
         return results
 
     def delete(self, doc_id: int) -> None:
-        self.__class__.client.delete(
+        self.client.delete(
             collection_name=self.collection_name,
-            points_selector=models.FilterSelector(
-                filter=models.Filter(
+            points_selector=rest.FilterSelector(
+                filter=rest.Filter(
                     must=[
-                        models.FieldCondition(
+                        rest.FieldCondition(
                             key="metadata.file_id",
-                            match=models.MatchValue(value=doc_id),
+                            match=rest.MatchValue(value=doc_id),
                         ),
                     ],
                 )
