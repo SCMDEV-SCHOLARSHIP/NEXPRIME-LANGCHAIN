@@ -1,7 +1,10 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
 from app.models.user import User
 from typing import Dict, Optional
 from datetime import datetime
+from app.cores.exceptions import InvalidRequestException
+import re
+from app.cores.exceptions.error_code import ErrorCode
 
 
 class UserDTO(BaseModel, extra="forbid"):
@@ -12,6 +15,28 @@ class UserDTO(BaseModel, extra="forbid"):
     create_user_id: Optional[str] = Field(default=None)
     modified_datetime: Optional[datetime] = Field(default=None)
     modified_user_id: Optional[str] = Field(default=None)
+
+    @validator("user_id")
+    def validate_user_id(cls, value):
+        if not value or len(value) == 0:
+            raise InvalidRequestException("user_id")
+        return value
+
+    @validator("user_email")
+    def validate_user_email(cls, value):
+        if not value or len(value) == 0:
+            raise InvalidRequestException("user_email")
+
+        pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+        match = bool(re.match(pattern, value))
+        if match == False:
+            raise InvalidRequestException(
+                "user_email",
+                ErrorCode(
+                    code="KMG_ERROR_R_002", message="user_email is not valid format"
+                ),
+            )
+        return value
 
 
 def convert_user_to_user_dto(user: User) -> UserDTO:
