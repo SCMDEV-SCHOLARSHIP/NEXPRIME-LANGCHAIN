@@ -1,12 +1,11 @@
 from typing import Generator
 from fastapi import FastAPI
-
 from app.cores.config import settings
 import app.routers as routers
 from app.cores.exceptions import EXC_HDLRs
-from app.cores.di import init_di
 from app.middlewares import SQLAlchemyMiddleware
 from fastapi.responses import RedirectResponse
+from app.cores.di_container import DiContainer
 
 
 def create_app() -> FastAPI:
@@ -21,7 +20,8 @@ def create_app() -> FastAPI:
 
     app.add_middleware(SQLAlchemyMiddleware)
 
-    init_di()
+    container = DiContainer()
+    container.wire(packages=["app"])
 
     return app
 

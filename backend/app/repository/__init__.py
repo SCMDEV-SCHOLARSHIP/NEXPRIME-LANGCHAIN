@@ -1,4 +1,4 @@
-from .user_crud import UserCrud, UserCrudImpl
+from .user_crud import UserCrud
 
 
-__all__ = ["UserCrud", "UserCrudImpl"]
+__all__ = ["UserCrud"]

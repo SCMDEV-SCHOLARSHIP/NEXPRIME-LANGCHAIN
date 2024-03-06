@@ -3,14 +3,14 @@ from app.schemas.user_schema import (
     convert_user_to_user_dto,
     convert_user_dto_to_user,
 )
-from pythondi import inject
+from dependency_injector.wiring import inject
 from app.repository import UserCrud
 from app.database.rdb import Transactional, Propagation
 
 
 class UserService:
 
-    @inject()
+    @inject
     def __init__(self, user_crud: UserCrud):
         self.user_crud = user_crud
 
