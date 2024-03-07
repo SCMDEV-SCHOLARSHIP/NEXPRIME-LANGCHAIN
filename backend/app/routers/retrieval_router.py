@@ -1,17 +1,26 @@
-from fastapi import APIRouter, status
+from fastapi import APIRouter, status, Depends
+from dependency_injector.wiring import inject, Provide
 
 import app.schemas.retreival_schema as schema
-import app.services.retrieval_service as service
+from app.cores.di_container import DiContainer, RetrievalMaker
 
 
 router = APIRouter(prefix="/retrieval")
 
 
-@router.post("/", response_model=schema.QueryOutput, status_code=status.HTTP_200_OK)
-def retrieve_by_query(ret_req: schema.QueryInput) -> schema.QueryOutput:
-    serv = service.RetrievalService(ret_req)
-    result = serv.retrieve()
-    response = schema.QueryOutput(
+@router.post("/", response_model=schema.RetrievalOutput, status_code=status.HTTP_200_OK)
+@inject
+def retrieve_by_query(
+    ret_req: schema.RetrievalInput,
+    service_maker: RetrievalMaker = Depends(Provide[DiContainer.retrieval_maker]),
+) -> schema.RetrievalOutput:
+    service = service_maker.build_retrieval_service(
+        llm_model_name=ret_req.llm_model,
+        embedding_model_name=ret_req.embedding_model,
+        vectorstore_params={"collection_name": ret_req.collection},
+    )
+    result = service.retrieve(ret_req.query)
+    response = schema.RetrievalOutput(
         answer=result["answer"],
         sources=[
             " ".join(
