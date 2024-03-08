@@ -1,6 +1,7 @@
 from typing import Any
 from abc import ABC, abstractmethod
 from langchain_core.prompts import ChatPromptTemplate
+from langchain import hub
 
 import app.cores.common_types as types
 
@@ -33,6 +34,4 @@ class OpenAIRetrievalService(RetrievalService):
 
     @property
     def prompt_template(self) -> ChatPromptTemplate:
-        from langchain import hub
-
         return hub.pull("langchain-ai/retrieval-qa-chat")

@@ -15,7 +15,7 @@ from app.models.sds_embeddings import SDSEmbedding
 
 
 # TODO: dependencies로 옮기기 + builder 분할(embedding 등)
-class RetrievalMaker:  # TODO: director로 역할 변환
+class RetrievalServiceBuilder:  # TODO: director로 역할 변환
     def __init__(self, container) -> None:
         self.container = container  # TODO: 컨테이너에서 setting 받아오기
 
@@ -77,4 +77,4 @@ class DiContainer(DeclarativeContainer):
     user_service = Singleton(UserService, user_crud=user_crud)
 
     # builder / director
-    retrieval_maker = Singleton(RetrievalMaker, __self__)
+    retrieval_service_builder = Singleton(RetrievalServiceBuilder, __self__)
