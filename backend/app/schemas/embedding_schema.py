@@ -1,6 +1,7 @@
-from pydantic import BaseModel, Field
+from pathlib import Path
+from pydantic import BaseModel
 
-import app.cores.common_types as types
+from app.cores.utils import gen_id
 
 
 class DocumentInfo(BaseModel, extra="forbid"):
@@ -9,53 +10,65 @@ class DocumentInfo(BaseModel, extra="forbid"):
     subject: str | None = None
 
 
-class BaseEmbeddingRequest(BaseModel, extra="forbid"):
-    embedding_model: str
-    collection: str
-
-
-class SingleDocument(BaseEmbeddingRequest, extra="forbid"):
-    file: DocumentInfo
-
-
-class BatchDocuments(BaseEmbeddingRequest, extra="forbid"):
-    files: list[DocumentInfo]
-
-
-class EmbeddingFile(SingleDocument, extra="forbid"):
-    collection_recreate: bool = False
-
-
-class EmbeddingFiles(BatchDocuments, extra="forbid"):
-    collection_recreate: bool = False
-
-
-class DocumentMetaSchema(BaseModel, extra="forbid"):
+class DocumentMeta(BaseModel, extra="forbid"):
     file_id: int
     source: str
-    file_name: str = Field(alias="name")
+    category: str
+    subject: str | None = None
+    name: str
+    stem: str
+    ext: str
+    total_split: int
+    split_number: int
+
+
+class EmbeddingResultSchema(BaseModel, extra="forbid"):
+    file_id: int
+    source: str
+    name: str
     total_split: int
     point_ids: list[str]
 
 
-class BaseResponse(BaseModel, extra="forbid"): ...
+def create_doc_meta(
+    doc_info: DocumentInfo, total_split: int, split_number: int
+) -> DocumentMeta:
+    path = Path(doc_info.source)
+    return DocumentMeta(
+        **doc_info.model_dump(),
+        file_id=gen_id(doc_info.source),
+        name=path.name,
+        stem=path.stem,
+        ext=path.suffix,
+        total_split=total_split,
+        split_number=split_number,
+    )
 
 
-class SingleResult(BaseResponse, extra="forbid"):
-    result: BaseModel
+def create_emb_result(
+    doc_meta: DocumentMeta, uuids: list[str]
+) -> EmbeddingResultSchema:
+    return EmbeddingResultSchema(
+        file_id=doc_meta.file_id,
+        source=doc_meta.source,
+        name=doc_meta.name,
+        total_split=doc_meta.total_split,
+        point_ids=uuids,
+    )
 
 
-class BatchResults(BaseResponse, extra="forbid"):
-    results: list[BaseModel]
+class ReplacementEmbeddingRequest(BaseModel, extra="forbid"):
+    embedding_model: str
+    collection: str
+    file: DocumentInfo
 
 
-class EmbeddingResult(SingleResult, extra="forbid"):
-    result: DocumentMetaSchema
+class BatchEmbeddingRequest(BaseModel, extra="forbid"):
+    embedding_model: str
+    collection: str
+    files: list[DocumentInfo]
+    collection_recreate: bool = False
 
 
-class EmbeddingResults(BatchResults, extra="forbid"):
-    results: list[DocumentMetaSchema]
-
-
-class RecordResults(BaseResponse, extra="forbid"):
-    results: list[types.Record] | None = None
+class EmbeddingResponse(BaseModel, extra="forbid"):
+    results: list[EmbeddingResultSchema]
