@@ -1,5 +1,6 @@
 from typing import TypeAlias
 from langchain.document_loaders.base import BaseLoader
+from langchain.text_splitter import TextSplitter
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
 from langchain_core.messages import BaseMessage
