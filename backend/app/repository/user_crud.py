@@ -2,6 +2,7 @@ from sqlalchemy import select
 
 from app.models.user import User
 from app.database.rdb import session
+from typing import Optional
 
 
 class UserCrud:
@@ -14,3 +15,8 @@ class UserCrud:
         user.modified_user_id = user.user_id
         session.add(user)
         return user
+
+    async def get_user(self, user_id: str) -> User:
+        query = select(User).where(User.user_id == user_id)
+        result = await session.execute(query)
+        return result.scalars().first()
