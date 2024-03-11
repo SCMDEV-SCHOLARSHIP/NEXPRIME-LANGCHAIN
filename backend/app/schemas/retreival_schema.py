@@ -1,11 +1,11 @@
 from pydantic import BaseModel
 
-from app.schemas import embedding_schema as emb_schema
 
-
-class RetrievalInput(emb_schema.BaseEmbeddingRequest, extra="forbid"):
+class RetrievalInput(BaseModel, extra="forbid"):
     query: str
+    collection: str
     llm_model: str
+    embedding_model: str
 
 
 class RetrievalOutput(BaseModel, extra="forbid"):

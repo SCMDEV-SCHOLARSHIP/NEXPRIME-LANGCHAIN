@@ -2,6 +2,8 @@ from typing import Any
 from abc import ABC, abstractmethod
 from langchain_core.prompts import ChatPromptTemplate
 from langchain import hub
+from langchain.chains import create_retrieval_chain
+from langchain.chains.combine_documents import create_stuff_documents_chain
 
 import app.cores.common_types as types
 
@@ -18,9 +20,6 @@ class RetrievalService(ABC):
     def prompt_template(self) -> ChatPromptTemplate: ...
 
     def retrieve(self, query: str) -> dict[str, Any]:
-        from langchain.chains.combine_documents import create_stuff_documents_chain
-        from langchain.chains import create_retrieval_chain
-
         document_chain = create_stuff_documents_chain(self.llm, self.prompt_template)
         retriever = self.vectorstore.as_retriever(
             search_type="similarity", search_kwargs={"k": 3}
