@@ -5,8 +5,10 @@
 CREATE TABLE IF NOT EXISTS nexprimescmmgr.nsa_embedding_file
 (
     file_id integer NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1 ),
-    file_path character varying(255) COLLATE pg_catalog."default" NOT NULL,
     uuid uuid NOT NULL,
+    file_path character varying(255) COLLATE pg_catalog."default" NOT NULL,
+    file_name character varying(100) COLLATE pg_catalog."default" NOT NULL,
+    file_extension character varying(10) COLLATE pg_catalog."default",
     create_datetime timestamp with time zone NOT NULL,
     create_user_id character varying(100) COLLATE pg_catalog."default" NOT NULL,
     modified_datetime timestamp with time zone NOT NULL,
