@@ -1,11 +1,10 @@
+from typing import Sequence, Any
 from langchain.vectorstores.qdrant import Qdrant
 from qdrant_client import QdrantClient, AsyncQdrantClient
 import qdrant_client.models as rest
 
 import app.cores.common_types as types
-
 from ..cores.config import settings
-from ..models.document import DocumentMeta
 from app.models.sds_embeddings import SDSEmbedding
 
 
@@ -30,11 +29,14 @@ class ExtendedQdrant(Qdrant):
             async_client=async_client,
         )
 
-    def create(
+    def add_documents(
         self,
         documents: list[types.Document],
-        metadatas: list[DocumentMeta] | None = None,
+        metadatas: list[dict[str, Any]] | None = None,
         collection_recreate: bool = False,
+        ids: Sequence[str] | None = None,
+        batch_size: int = 64,
+        **kwargs: Any
     ) -> list[str]:
         texts = [d.page_content for d in documents]
         if collection_recreate == True:  # Qdrant 내부 동작
@@ -50,14 +52,9 @@ class ExtendedQdrant(Qdrant):
             self.client.recreate_collection(
                 collection_name=self.collection_name, vectors_config=vectors_config
             )
-        return self.add_texts(
-            texts,
-            metadatas=(
-                [m.model_dump() for m in metadatas] if metadatas != None else None
-            ),
-        )
+        return super().add_texts(texts, metadatas, ids, batch_size, **kwargs)
 
-    def read(self, doc_id: int) -> list[types.Record]:
+    def get_records(self, doc_id: int) -> list[types.Record]:
         results: list[types.Record] = []
         more_page = None
         while True:
@@ -77,19 +74,3 @@ class ExtendedQdrant(Qdrant):
             if more_page == None:
                 break
         return results
-
-    def delete(self, doc_id: int) -> None:
-        self.client.delete(
-            collection_name=self.collection_name,
-            points_selector=rest.FilterSelector(
-                filter=rest.Filter(
-                    must=[
-                        rest.FieldCondition(
-                            key="metadata.file_id",
-                            match=rest.MatchValue(value=doc_id),
-                        ),
-                    ],
-                )
-            ),
-        )
-        return

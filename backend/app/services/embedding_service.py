@@ -1,77 +1,49 @@
-from pathlib import Path
-from langchain.text_splitter import CharacterTextSplitter
-
-import app.cores.dependencies as deps
+import app.cores.common_types as types
+from app.cores.utils import gen_id
 import app.schemas.embedding_schema as schema
 
-
-from ..cores.utils import gen_id
-from ..models.document import DocumentMeta
-
-
-def embed_doc(emb_req: schema.EmbeddingFile) -> schema.DocumentMetaSchema:
-    embedding_model = deps.get_embedding(emb_req.embedding_model)
-    vectorstore = deps.get_vectorstore_crud()(
-        collection_name=emb_req.collection, embeddings=embedding_model
-    )
-    collection_recreate = emb_req.collection_recreate
-    file = emb_req.file
-    path = Path(file.source)
-    loader = deps.get_loader(file.source)
-    loaded_documents = loader.load()
-    text_splitter = CharacterTextSplitter(
-        separator="\n\n",
-        chunk_size=1000,
-        chunk_overlap=200,
-        length_function=len,
-        is_separator_regex=False,
-    )
-    splitted_documents = text_splitter.split_documents(loaded_documents)
-    total_split = len(splitted_documents)
-    metadatas = [
-        DocumentMeta(
-            **file.model_dump(),
-            file_id=gen_id(file.source),
-            name=path.name,
-            stem=path.stem,
-            ext=path.suffix,
-            total_split=total_split,
-            split_number=i,
-        )
-        for i in range(1, total_split + 1)
-    ]
-    uuid_results = vectorstore.create(
-        splitted_documents,
-        metadatas=metadatas,
-        collection_recreate=collection_recreate,
-    )
-    return schema.DocumentMetaSchema(
-        file_id=metadatas[0].file_id,
-        source=file.source,
-        name=path.name,
-        total_split=total_split,
-        point_ids=uuid_results,
-    )
+# TODO: 추후 기능을 사용하지 않으면 삭제하기
+from .collection_service import CollectionService
 
 
-def embed_docs(emb_req: schema.EmbeddingFiles) -> list[schema.DocumentMetaSchema]:
-    collection_recreate = emb_req.collection_recreate
-    results: list[schema.DocumentMetaSchema] = []
-    from app.services.collection_service import search_doc
+class EmbeddingService:
+    def __init__(self, collection_service: CollectionService) -> None:
+        self.vectorstore = collection_service.vectorstore
+        self.get_doc = collection_service.get_doc
+        self.delete_doc = collection_service.delete_doc
 
-    for f in emb_req.files:
-        if collection_recreate == False and search_doc(
-            emb_req.collection, gen_id(f.source)
-        ):
-            print("file already exist")  # logging으로 넘기거나, 다른 로직 추가 가능
-            continue
-        single_req = schema.EmbeddingFile(
-            file=f,
-            embedding_model=emb_req.embedding_model,
-            collection=emb_req.collection,
+    def embed_doc(
+        self,
+        splitted_document: list[types.Document],
+        doc_info: schema.DocumentInfo,
+        collection_recreate: bool = False,
+    ) -> schema.EmbeddingResultSchema:
+        total_split = len(splitted_document)
+        metadatas = [
+            schema.create_doc_meta(doc_info, total_split, i)
+            for i, _ in enumerate(splitted_document, start=1)
+        ]
+        uuid_results = self.vectorstore.add_documents(
+            splitted_document,
+            metadatas=[m.model_dump() for m in metadatas],
             collection_recreate=collection_recreate,
         )
-        meta = embed_doc(single_req)
-        collection_recreate = False
-        results.append(meta)
-    return results
+        return schema.create_emb_result(metadatas[0], uuid_results)
+
+    def embed_docs(
+        self,
+        splitted_documents: list[list[types.Document]],
+        doc_infos: list[schema.DocumentInfo],
+        collection_recreate: bool = False,
+    ) -> list[schema.EmbeddingResultSchema]:
+        recreate = collection_recreate
+        results: list[schema.EmbeddingResultSchema] = []
+        for doc, info in zip(splitted_documents, doc_infos):
+            if recreate == False and self.get_doc(gen_id(info.source)):
+                # TODO: logging 또는 langchain 기능으로 변경
+                print(f"\033[33mWARNING: {info.source} has been passed\033[0m")
+                continue
+            res = self.embed_doc(doc, info, recreate)
+            results.append(res)
+            recreate = False
+        return results
