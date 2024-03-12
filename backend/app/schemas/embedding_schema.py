@@ -30,7 +30,7 @@ class EmbeddingResultSchema(BaseModel, extra="forbid"):
     point_ids: list[str]
 
 
-def create_doc_meta(
+async def create_doc_meta(
     doc_info: DocumentInfo, total_split: int, split_number: int
 ) -> DocumentMeta:
     path = Path(doc_info.source)
@@ -45,7 +45,7 @@ def create_doc_meta(
     )
 
 
-def create_emb_result(
+async def create_emb_result(
     doc_meta: DocumentMeta, uuids: list[str]
 ) -> EmbeddingResultSchema:
     return EmbeddingResultSchema(

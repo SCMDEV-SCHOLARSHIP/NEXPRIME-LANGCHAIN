@@ -26,7 +26,7 @@ class DiContainer(DeclarativeContainer):
     # services
     user_service = Singleton(UserService, user_crud=user_crud)
 
-    # factories
+    # (async) factories
     retrieval_service_factory = Callable(
         feature_director().build_retrieval_service, builder=_retrieval_builder
     )

@@ -1,6 +1,7 @@
+import asyncio
 from pathlib import Path
 from abc import ABC
-from typing import TypeAlias
+from typing import TypeAlias, TypeVar
 from dependency_injector.wiring import inject
 
 from langchain.document_loaders.word_document import Docx2txtLoader
@@ -33,7 +34,7 @@ from app.services import (
 
 
 class FeatureBuilder(ABC):
-    def make_vectorstore(
+    async def make_vectorstore(
         self, collection_name: str, embedding_model: types.Embeddings
     ) -> types.VectorStore:
         vs_name = settings.vectorstore.engine
@@ -44,7 +45,7 @@ class FeatureBuilder(ABC):
         else:
             raise Exception("Value not found")
 
-    def make_embedding(self, model_name: str) -> types.Embeddings:
+    async def make_embedding(self, model_name: str) -> types.Embeddings:
         engine = SupportedModels.EMBEDDING.get(model_name, None)
         if engine == "openai":
             return OpenAIEmbeddings(
@@ -58,7 +59,7 @@ class FeatureBuilder(ABC):
 
 
 class DocumentBuilder(FeatureBuilder):
-    def make_loader(self, file_path: str) -> types.BaseLoader:
+    async def make_loader(self, file_path: str) -> types.BaseLoader:
         ext = Path(file_path).suffix
         if ext == ".txt":
             return TextLoader(file_path)
@@ -71,7 +72,7 @@ class DocumentBuilder(FeatureBuilder):
         else:
             raise Exception("Value not found")
 
-    def make_splitter(self, alias: str = "base") -> types.TextSplitter:
+    async def make_splitter(self, alias: str = "base") -> types.TextSplitter:
         if alias == "base":
             return RecursiveCharacterTextSplitter(
                 separators=["\n\n", "\n", " ", ""],  # default
@@ -93,7 +94,7 @@ class DocumentBuilder(FeatureBuilder):
 
 
 class RetrievalBuilder(FeatureBuilder):
-    def make_llm(self, model_name: str) -> types.BaseLanguageModel:
+    async def make_llm(self, model_name: str) -> types.BaseLanguageModel:
         engine = SupportedModels.LLM.get(model_name, None)
         if engine == "openai":
             return ChatOpenAI(
@@ -106,18 +107,19 @@ class RetrievalBuilder(FeatureBuilder):
 
 
 # TODO: TypeVar 테스트
-BuilderType: TypeAlias = DocumentBuilder | RetrievalBuilder
+# BuilderType: TypeAlias = DocumentBuilder | RetrievalBuilder # TypeVar 문제 발생 시 변경
+BuilderType = TypeVar("BuilderType", DocumentBuilder, RetrievalBuilder)
 
 
 class FeatureDirector:
-    def check_valid_builder(
+    async def check_valid_builder(
         self, builder: BuilderType, builder_type: type[BuilderType]
     ) -> None:
         if isinstance(builder, builder_type) == False:
             raise Exception(f"{type(builder)} is not allowed")
 
     @inject
-    def build_retrieval_service(
+    async def build_retrieval_service(
         self,
         builder: BuilderType,
         collection_name: str,
@@ -125,41 +127,44 @@ class FeatureDirector:
         llm_model_name: str,
         alias: str = "openai-test",
     ) -> RetrievalService:
-        self.check_valid_builder(builder, RetrievalBuilder)
-        llm = builder.make_llm(llm_model_name)
-        embedding = builder.make_embedding(embedding_model_name)
-        vectorstore = builder.make_vectorstore(collection_name, embedding)
+        await self.check_valid_builder(builder, RetrievalBuilder)
+        embedding = await builder.make_embedding(embedding_model_name)
+        vectorstore, llm = await asyncio.gather(
+            builder.make_vectorstore(collection_name, embedding),
+            builder.make_llm(llm_model_name),
+        )
         if alias == "openai-test":
             return OpenAIRetrievalService(vectorstore=vectorstore, llm=llm)
         else:
             raise Exception("Value not found")
 
     @inject
-    def build_embedding_service(
+    async def build_embedding_service(
         self,
         builder: BuilderType,
         collection_name: str,
         embedding_model_name: str,
     ) -> EmbeddingService:
-        embedding = builder.make_embedding(embedding_model_name)
-        vectorstore = builder.make_vectorstore(collection_name, embedding)
+        embedding = await builder.make_embedding(embedding_model_name)
+        vectorstore = await builder.make_vectorstore(collection_name, embedding)
         return EmbeddingService(CollectionService(vectorstore))
 
     @inject
-    def build_collection_service(
+    async def build_collection_service(
         self, builder: BuilderType, collection_name: str
     ) -> CollectionService:
         embedding = SDSEmbedding()
-        vectorstore = builder.make_vectorstore(collection_name, embedding)
+        vectorstore = await builder.make_vectorstore(collection_name, embedding)
         return CollectionService(vectorstore)
 
     @inject
-    def build_splitted_documents(
+    async def build_splitted_documents(
         self, builder: BuilderType, file_path: str, splitter_alias: str = "base"
     ) -> list[types.Document]:
-        self.check_valid_builder(builder, DocumentBuilder)
-        loader = builder.make_loader(file_path)
+        await self.check_valid_builder(builder, DocumentBuilder)
+        loader, text_splitter = await asyncio.gather(
+            builder.make_loader(file_path), builder.make_splitter(splitter_alias)
+        )
         loaded_documents = loader.load()
-        text_splitter = builder.make_splitter(splitter_alias)
         splitted_documents = text_splitter.split_documents(loaded_documents)
         return splitted_documents
