@@ -42,21 +42,22 @@ class EmbeddingService:
     ) -> list[schema.EmbeddingResultSchema]:
         results: list[schema.EmbeddingResultSchema] = []
         docs = iter(splitted_documents)
-        infos = iter(doc_infos)
         if collection_recreate == True:
+            infos = iter(doc_infos)
             doc, info = next(docs), next(infos)
             results.append(await self.embed_doc(doc, info, True))
-        embed_coros: list[Coroutine[Any, Any, schema.EmbeddingResultSchema]] = []
-        infos = list(infos)
-        existences = await asyncio.gather(
-            *[self.get_doc(gen_id(info.source)) for info in infos]
-        )
-        infos = iter(infos)
-        for doc, info, doc_exist in zip(docs, infos, existences):
-            if doc_exist:
-                # TODO: logging 또는 langchain 기능으로 변경
-                print(f"\033[33mWARNING: {info.source} has been passed\033[0m")
-                continue
-            embed_coros.append(self.embed_doc(doc, info))
+            embed_coros = [self.embed_doc(doc, info) for doc, info in zip(docs, infos)]
+        else:
+            existences = await asyncio.gather(
+                *[self.get_doc(gen_id(info.source)) for info in doc_infos]
+            )
+            infos = iter(doc_infos)
+            embed_coros: list[Coroutine[Any, Any, schema.EmbeddingResultSchema]] = []
+            for doc, info, doc_exist in zip(docs, infos, existences):
+                if doc_exist:
+                    # TODO: logging 또는 langchain 기능으로 변경
+                    print(f"\033[33mWARNING: {info.source} has been passed\033[0m")
+                    continue
+                embed_coros.append(self.embed_doc(doc, info))
         results.extend(await asyncio.gather(*embed_coros))
         return results
