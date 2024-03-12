@@ -2,7 +2,7 @@ from fastapi import APIRouter, status, Depends
 from dependency_injector.wiring import inject, Provide
 from typing import Callable, Coroutine, Any
 
-import app.schemas.retreival_schema as schema
+import app.schemas.retrieval_schema as schema
 from app.cores.di_container import DiContainer
 from app.services import RetrievalService
 
