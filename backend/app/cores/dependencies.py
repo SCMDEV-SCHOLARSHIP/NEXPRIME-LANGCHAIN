@@ -111,13 +111,15 @@ class RetrievalBuilder(FeatureBuilder):
 BuilderType = TypeVar("BuilderType", DocumentBuilder, RetrievalBuilder)
 
 
-class FeatureDirector:
+class FeatureDirector(ABC):
     async def check_valid_builder(
         self, builder: BuilderType, builder_type: type[BuilderType]
     ) -> None:
         if isinstance(builder, builder_type) == False:
             raise Exception(f"{type(builder)} is not allowed")
 
+
+class ServiceDirector(FeatureDirector):
     @inject
     async def build_retrieval_service(
         self,
@@ -157,8 +159,10 @@ class FeatureDirector:
         vectorstore = await builder.make_vectorstore(collection_name, embedding)
         return CollectionService(vectorstore)
 
+
+class DocumentDirector(FeatureDirector):
     @inject
-    async def build_splitted_documents(
+    async def build_splitted_document(
         self, builder: BuilderType, file_path: str, splitter_alias: str = "base"
     ) -> list[types.Document]:
         await self.check_valid_builder(builder, DocumentBuilder)
@@ -166,5 +170,5 @@ class FeatureDirector:
             builder.make_loader(file_path), builder.make_splitter(splitter_alias)
         )
         loaded_documents = loader.load()
-        splitted_documents = text_splitter.split_documents(loaded_documents)
-        return splitted_documents
+        splitted_document = text_splitter.split_documents(loaded_documents)
+        return splitted_document
