@@ -8,7 +8,12 @@ from dependency_injector.providers import (
 
 from app.services.user_service import UserService
 from app.repository import UserCrud
-from app.cores.dependencies import DocumentBuilder, RetrievalBuilder, FeatureDirector
+from app.cores.dependencies import (
+    DocumentBuilder,
+    RetrievalBuilder,
+    ServiceDirector,
+    DocumentDirector,
+)
 
 
 class DiContainer(DeclarativeContainer):
@@ -20,22 +25,23 @@ class DiContainer(DeclarativeContainer):
 
     # builders / directors
     _retrieval_builder = Singleton(RetrievalBuilder)
-    _documents_builder = Singleton(DocumentBuilder)
-    feature_director = Singleton(FeatureDirector)
+    _document_builder = Singleton(DocumentBuilder)
+    _service_director = Singleton(ServiceDirector)
+    _document_director = Singleton(DocumentDirector)
 
     # services
     user_service = Singleton(UserService, user_crud=user_crud)
 
     # (async) factories
     retrieval_service_factory = Callable(
-        feature_director().build_retrieval_service, builder=_retrieval_builder
+        _service_director().build_retrieval_service, builder=_retrieval_builder
     )
     embedding_service_factory = Callable(
-        feature_director().build_embedding_service, builder=_documents_builder
+        _service_director().build_embedding_service, builder=_document_builder
     )
     collection_service_factory = Callable(
-        feature_director().build_collection_service, builder=_documents_builder
+        _service_director().build_collection_service, builder=_document_builder
     )
-    splitted_documents_factory = Callable(
-        feature_director().build_splitted_documents, builder=_documents_builder
+    splitted_document_factory = Callable(
+        _document_director().build_splitted_document, builder=_document_builder
     )

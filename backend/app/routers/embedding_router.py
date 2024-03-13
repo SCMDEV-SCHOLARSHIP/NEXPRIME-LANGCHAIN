@@ -26,9 +26,9 @@ async def embed_new_documents(
     service_factory: Callable[..., Coroutine[Any, Any, EmbeddingService]] = Depends(
         Provide[DiContainer.embedding_service_factory.provider]
     ),
-    splitted_docs_factory: Callable[
+    splitted_doc_factory: Callable[
         ..., Coroutine[Any, Any, list[types.Document]]
-    ] = Depends(Provide[DiContainer.splitted_documents_factory.provider]),
+    ] = Depends(Provide[DiContainer.splitted_document_factory.provider]),
 ) -> schema.EmbeddingResponse:
     service_task = asyncio.create_task(
         service_factory(
@@ -37,7 +37,7 @@ async def embed_new_documents(
         )
     )
     splitted_documents = await asyncio.gather(
-        *[splitted_docs_factory(file_path=file.source) for file in emb_req.files]
+        *[splitted_doc_factory(file_path=file.source) for file in emb_req.files]
     )
     service = await service_task
     results = await service.embed_docs(
@@ -58,9 +58,9 @@ async def re_embed_document(
     service_factory: Callable[..., Coroutine[Any, Any, EmbeddingService]] = Depends(
         Provide[DiContainer.embedding_service_factory.provider]
     ),
-    splitted_docs_factory: Callable[
+    splitted_doc_factory: Callable[
         ..., Coroutine[Any, Any, list[types.Document]]
-    ] = Depends(Provide[DiContainer.splitted_documents_factory.provider]),
+    ] = Depends(Provide[DiContainer.splitted_document_factory.provider]),
 ) -> schema.EmbeddingResponse:
     if doc_id != gen_id(emb_req.file.source):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "not matched id")
@@ -69,7 +69,7 @@ async def re_embed_document(
             collection_name=emb_req.collection,
             embedding_model_name=emb_req.embedding_model,
         ),
-        splitted_docs_factory(file_path=emb_req.file.source),
+        splitted_doc_factory(file_path=emb_req.file.source),
     )
     try:
         await service.delete_doc(doc_id)
