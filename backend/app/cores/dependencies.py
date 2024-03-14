@@ -120,7 +120,7 @@ BuilderType = TypeVar("BuilderType", DocumentBuilder, RetrievalBuilder)
 
 
 class FeatureDirector(ABC):
-    async def check_valid_builder(
+    async def check_valid_builder(  # TODO: NOT USED -> 삭제
         self, builder: BuilderType, builder_type: type[BuilderType]
     ) -> None:
         if isinstance(builder, builder_type) == False:
@@ -137,7 +137,6 @@ class ServiceDirector(FeatureDirector):
         alias: str = "openai-test",
         builder: BuilderType = Provide["_retrieval_builder"],
     ) -> RetrievalService:
-        # await self.check_valid_builder(builder, RetrievalBuilder)
         embedding = await builder.make_embedding(embedding_model_name)
         vectorstore, llm = await asyncio.gather(
             builder.make_vectorstore(collection_name, embedding),
@@ -178,7 +177,6 @@ class DocumentDirector(FeatureDirector):
         splitter_alias: str = "base",
         builder: BuilderType = Provide["_document_builder"],
     ) -> list[types.Document]:
-        # await self.check_valid_builder(builder, DocumentBuilder)
         loader, text_splitter = await asyncio.gather(
             builder.make_loader(file_path), builder.make_splitter(splitter_alias)
         )
