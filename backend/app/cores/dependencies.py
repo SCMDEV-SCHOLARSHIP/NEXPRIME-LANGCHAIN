@@ -2,7 +2,8 @@ import asyncio
 from pathlib import Path
 from abc import ABC
 from typing import TypeAlias, TypeVar
-from dependency_injector.wiring import inject
+from dependency_injector.wiring import inject, Provide, Provider
+from dependency_injector.providers import Configuration
 
 from langchain.document_loaders.word_document import Docx2txtLoader
 from langchain.document_loaders.text import TextLoader
@@ -21,8 +22,8 @@ from langchain_openai import ChatOpenAI
 
 from app.database import ExtendedQdrant
 
+from app.cores.config import ConfigContianer
 import app.cores.common_types as types
-from app.cores.config import settings
 from app.cores.constants import SupportedModels, SupportedVectorStores
 
 from app.services import (
@@ -34,10 +35,17 @@ from app.services import (
 
 
 class FeatureBuilder(ABC):
+    @inject
+    def __init__(
+        self, config: Configuration = Provider[ConfigContianer.config]
+    ) -> None:
+        self.config = config
+        super().__init__()
+
     async def make_vectorstore(
         self, collection_name: str, embedding_model: types.Embeddings
     ) -> types.VectorStore:
-        vs_name = settings.vectorstore.engine
+        vs_name: str = self.config.vectorstore.engine()
         if vs_name == SupportedVectorStores.QDRANT:
             return ExtendedQdrant(
                 collection_name=collection_name, embeddings=embedding_model
@@ -50,7 +58,7 @@ class FeatureBuilder(ABC):
         if engine == "openai":
             return OpenAIEmbeddings(
                 model=model_name,
-                openai_api_key=settings.OPENAI_API_KEY,
+                openai_api_key=self.config.secrets.OPENAI_API_KEY().get_secret_value(),
             )
         elif engine == "sds-embed":
             return SDSEmbedding()
@@ -100,7 +108,7 @@ class RetrievalBuilder(FeatureBuilder):
             return ChatOpenAI(
                 model=model_name,
                 temperature=0,
-                api_key=settings.OPENAI_API_KEY,
+                api_key=self.config.secrets.OPENAI_API_KEY().get_secret_value(),
             )
         else:
             raise Exception("Value not found")
@@ -123,13 +131,13 @@ class ServiceDirector(FeatureDirector):
     @inject
     async def build_retrieval_service(
         self,
-        builder: BuilderType,
         collection_name: str,
         embedding_model_name: str,
         llm_model_name: str,
         alias: str = "openai-test",
+        builder: BuilderType = Provide["_retrieval_builder"],
     ) -> RetrievalService:
-        await self.check_valid_builder(builder, RetrievalBuilder)
+        # await self.check_valid_builder(builder, RetrievalBuilder)
         embedding = await builder.make_embedding(embedding_model_name)
         vectorstore, llm = await asyncio.gather(
             builder.make_vectorstore(collection_name, embedding),
@@ -143,9 +151,9 @@ class ServiceDirector(FeatureDirector):
     @inject
     async def build_embedding_service(
         self,
-        builder: BuilderType,
         collection_name: str,
         embedding_model_name: str,
+        builder: BuilderType = Provide["_document_builder"],
     ) -> EmbeddingService:
         embedding = await builder.make_embedding(embedding_model_name)
         vectorstore = await builder.make_vectorstore(collection_name, embedding)
@@ -153,7 +161,9 @@ class ServiceDirector(FeatureDirector):
 
     @inject
     async def build_collection_service(
-        self, builder: BuilderType, collection_name: str
+        self,
+        collection_name: str,
+        builder: BuilderType = Provide["_document_builder"],
     ) -> CollectionService:
         embedding = SDSEmbedding()
         vectorstore = await builder.make_vectorstore(collection_name, embedding)
@@ -163,9 +173,12 @@ class ServiceDirector(FeatureDirector):
 class DocumentDirector(FeatureDirector):
     @inject
     async def build_splitted_document(
-        self, builder: BuilderType, file_path: str, splitter_alias: str = "base"
+        self,
+        file_path: str,
+        splitter_alias: str = "base",
+        builder: BuilderType = Provide["_document_builder"],
     ) -> list[types.Document]:
-        await self.check_valid_builder(builder, DocumentBuilder)
+        # await self.check_valid_builder(builder, DocumentBuilder)
         loader, text_splitter = await asyncio.gather(
             builder.make_loader(file_path), builder.make_splitter(splitter_alias)
         )

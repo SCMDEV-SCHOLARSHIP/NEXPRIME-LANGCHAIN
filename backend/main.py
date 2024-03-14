@@ -1,10 +1,11 @@
 import uvicorn
-from app.cores.config import settings
+from app import app
+
 
 if __name__ == "__main__":
     uvicorn.run(
         "app:app",
-        host=settings.environ.host,
-        port=settings.environ.port,
+        host=app.config.base.host(),
+        port=app.config.base.port(),
         reload=True,
     )

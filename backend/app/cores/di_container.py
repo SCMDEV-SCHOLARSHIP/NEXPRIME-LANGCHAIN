@@ -1,10 +1,5 @@
 from dependency_injector.containers import DeclarativeContainer
-from dependency_injector.providers import (
-    Configuration,
-    Singleton,
-    Self,
-    Callable,
-)
+from dependency_injector.providers import Configuration, Singleton, Callable
 
 from app.services.user_service import UserService
 from app.repository import UserCrud
@@ -17,9 +12,6 @@ from app.cores.dependencies import (
 
 
 class DiContainer(DeclarativeContainer):
-    __self__ = Self()
-    config = Configuration()
-
     # repositories
     user_crud = Singleton(UserCrud)
 
@@ -33,15 +25,7 @@ class DiContainer(DeclarativeContainer):
     user_service = Singleton(UserService, user_crud=user_crud)
 
     # (async) factories
-    retrieval_service_factory = Callable(
-        _service_director().build_retrieval_service, builder=_retrieval_builder
-    )
-    embedding_service_factory = Callable(
-        _service_director().build_embedding_service, builder=_document_builder
-    )
-    collection_service_factory = Callable(
-        _service_director().build_collection_service, builder=_document_builder
-    )
-    splitted_document_factory = Callable(
-        _document_director().build_splitted_document, builder=_document_builder
-    )
+    retrieval_service_factory = Callable(_service_director().build_retrieval_service)
+    embedding_service_factory = Callable(_service_director().build_embedding_service)
+    collection_service_factory = Callable(_service_director().build_collection_service)
+    splitted_document_factory = Callable(_document_director().build_splitted_document)
