@@ -1,10 +1,18 @@
 import requests
 from langchain_core.embeddings import Embeddings
 import json
-from ..cores.config import settings
+from dependency_injector.wiring import inject, Provide
+
+from app.cores.config import ConfigContianer
 
 
 class SDSEmbedding(Embeddings):
+    @inject
+    def __init__(
+        self, url: str = Provide[ConfigContianer.config.secrets.SDS_EMBEDDING_URL]
+    ) -> None:
+        self.url = url
+        super().__init__()
 
     def embed_documents(self, texts: list[str]) -> list[list[float]]:
         return self._get_embeded_vectors(texts)
@@ -13,7 +21,7 @@ class SDSEmbedding(Embeddings):
         pass
 
     def _get_embeded_vectors(self, texts: list[str]) -> list[list[float]]:
-        url = settings.SDS_EMBEDDING_URL
+        url = self.url
         headers = {"Content-Type": "application/json"}
 
         # request body

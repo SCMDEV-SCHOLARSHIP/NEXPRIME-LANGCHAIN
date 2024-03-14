@@ -3,22 +3,25 @@ from typing import Sequence, Any
 from langchain.vectorstores.qdrant import Qdrant
 from qdrant_client import QdrantClient, AsyncQdrantClient
 import qdrant_client.models as rest
+from dependency_injector.wiring import inject, Provide
 
+from app.cores.config import ConfigContianer
 import app.cores.common_types as types
-from ..cores.config import settings
 from app.models.sds_embeddings import SDSEmbedding
 
 
 class ExtendedQdrant(Qdrant):
+    @inject
     def __init__(
         self,
         collection_name: str,
         embeddings: types.Embeddings | None = None,
         distance_strategy: str = "COSINE",
         vector_name: str | None = None,
+        url: str = Provide[ConfigContianer.config.vectorstore.url],
     ):
-        client = QdrantClient(url=settings.vectorstore.url)
-        async_client = AsyncQdrantClient(url=settings.vectorstore.url)
+        client = QdrantClient(url=url)
+        async_client = AsyncQdrantClient(url=url)
         if embeddings == None:  # TODO: 예외처리 또는 구조 변경
             embeddings = SDSEmbedding()
         super().__init__(

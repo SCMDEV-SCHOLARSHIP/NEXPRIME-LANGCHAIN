@@ -7,10 +7,15 @@ from sqlalchemy.ext.asyncio import (
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from typing import Union
-from app.cores.config import settings
+from app.cores.config import ConfigContianer as _Container
 
 
-SQLALCHEMY_DATABASE_URL = f"postgresql+asyncpg://{settings.environ.db_username}:{settings.environ.db_password}@{settings.environ.db_url}"
+SQLALCHEMY_DATABASE_URL = (
+    "postgresql+asyncpg"
+    f"://{_Container.config.db.username()}"
+    f":{_Container.config.db.password()}"
+    f"@{_Container.config.db.url()}"
+)
 
 
 session_context: ContextVar[str] = ContextVar("session_context")
