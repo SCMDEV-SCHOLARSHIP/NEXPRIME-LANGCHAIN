@@ -3,25 +3,28 @@ from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.exception_handlers import http_exception_handler
 from pydantic import BaseModel
 
-from .exceptions import ValueNotExistException, InvalidRequestException, HTTPException
+from .exceptions import InvalidRequestException, ExternalServiceException, HTTPException, ErrorCode
 
 
-async def value_not_exist_handler(
-    request: Request, exc: ValueNotExistException
-) -> JSONResponse:  # example: custom exception
+def get_error_schema(status_code:int , value:str ,error_code: ErrorCode) -> JSONResponse:
     return JSONResponse(
-        content={"code": exc.detail.code, "message": exc.detail.message},
-        status_code=exc.status_code,
+        content={
+            "code": error_code.value[0],
+            "message": f"{value} : {error_code.value[1]}",
+        },
+        status_code=status_code,
     )
-
 
 async def bad_request_handler(
     request: Request, exc: InvalidRequestException
 ) -> JSONResponse:
-    return JSONResponse(
-        content={"code": exc.detail.code, "message": exc.detail.message},
-        status_code=exc.status_code,
-    )
+    return get_error_schema(exc.status_code, exc.value, exc.error_code)
+
+
+async def external_service_exception_handler(
+    request: Request, exc: ExternalServiceException
+) -> JSONResponse:
+    return get_error_schema(exc.status_code, exc.value, exc.error_code)
 
 
 async def not_found_error(

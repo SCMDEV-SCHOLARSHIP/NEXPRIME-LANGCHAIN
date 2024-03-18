@@ -19,22 +19,19 @@ class UserDTO(BaseModel, extra="forbid"):
     @validator("user_id")
     def validate_user_id(cls, value):
         if not value or len(value) == 0:
-            raise InvalidRequestException("user_id")
+            raise InvalidRequestException("user_id", error_code=ErrorCode.NOT_EXIST)
         return value
 
     @validator("user_email")
     def validate_user_email(cls, value):
         if not value or len(value) == 0:
-            raise InvalidRequestException("user_email")
+            raise InvalidRequestException("user_email", error_code=ErrorCode.NOT_EXIST)
 
         pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
         match = bool(re.match(pattern, value))
         if match == False:
             raise InvalidRequestException(
-                "user_email",
-                ErrorCode(
-                    code="KMG_ERROR_R_002", message="user_email is not valid format"
-                ),
+                "user_email", error_code=ErrorCode.INVALID_FORMAT
             )
         return value
 

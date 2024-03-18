@@ -17,6 +17,10 @@ from langchain.text_splitter import (
 
 from langchain.embeddings.openai import OpenAIEmbeddings
 from app.models.sds_embeddings import SDSEmbedding
+from langchain_community.llms.huggingface_text_gen_inference import (
+    HuggingFaceTextGenInference,
+)
+from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 
 from langchain_openai import ChatOpenAI
 
@@ -29,6 +33,7 @@ from app.cores.constants import SupportedModels, SupportedVectorStores
 from app.services import (
     RetrievalService,
     OpenAIRetrievalService,
+    BaseRetrievalService,
     EmbeddingService,
     CollectionService,
 )
@@ -60,7 +65,7 @@ class FeatureBuilder(ABC):
                 model=model_name,
                 openai_api_key=self.config.secrets.OPENAI_API_KEY().get_secret_value(),
             )
-        elif engine == "sds-embed":
+        elif engine == "sds":
             return SDSEmbedding()
         else:
             raise Exception("Value not found")
@@ -110,6 +115,16 @@ class RetrievalBuilder(FeatureBuilder):
                 temperature=0,
                 api_key=self.config.secrets.OPENAI_API_KEY().get_secret_value(),
             )
+        elif engine == "sds":
+            return HuggingFaceTextGenInference(
+                inference_server_url=self.config.secrets.SDS_LLAMA_URL().get_secret_value(),
+                max_new_tokens=512,
+                top_k=10,
+                top_p=0.95,
+                typical_p=0.95,
+                temperature=0.01,
+                repetition_penalty=1.03,
+            )
         else:
             raise Exception("Value not found")
 
@@ -134,7 +149,7 @@ class ServiceDirector(FeatureDirector):
         collection_name: str,
         embedding_model_name: str,
         llm_model_name: str,
-        alias: str = "openai-test",
+        alias: str = "base",
         builder: BuilderType = Provide["_retrieval_builder"],
     ) -> RetrievalService:
         embedding = await builder.make_embedding(embedding_model_name)
@@ -144,6 +159,8 @@ class ServiceDirector(FeatureDirector):
         )
         if alias == "openai-test":
             return OpenAIRetrievalService(vectorstore=vectorstore, llm=llm)
+        elif alias == "base":
+            return BaseRetrievalService(vectorstore=vectorstore, llm=llm)
         else:
             raise Exception("Value not found")
 
