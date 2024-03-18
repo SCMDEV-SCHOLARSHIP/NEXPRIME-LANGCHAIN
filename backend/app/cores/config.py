@@ -13,6 +13,7 @@ class SecretInfo(BaseSettings, extra="forbid"):
     )
     OPENAI_API_KEY: SecretStr = Field(default="", frozen=True)
     SDS_EMBEDDING_URL: SecretStr = Field(default="", frozen=True)
+    SDS_LLAMA_URL: SecretStr = Field(default="", frozen=True)
 
 
 class DataBaseInfo(BaseModel, extra="forbid"):

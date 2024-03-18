@@ -20,8 +20,7 @@ class UserService:
     async def create_user(self, user_dto: UserDTO) -> UserDTO:
         if await self.user_crud.get_user(user_dto.user_id) != None:
             raise InvalidRequestException(
-                "user_id",
-                ErrorCode(code="KMG_ERROR_R_002", message="user_id is duplicated"),
+                "user_id", error_code=ErrorCode.DUPLICATED_VALUE
             )
 
         user = convert_user_dto_to_user(user_dto)

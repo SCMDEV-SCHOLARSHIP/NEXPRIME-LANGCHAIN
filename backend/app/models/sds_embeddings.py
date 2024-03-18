@@ -4,6 +4,8 @@ import json
 from dependency_injector.wiring import inject, Provide
 
 from app.cores.config import ConfigContianer
+from app.cores.exceptions.exceptions import ExternalServiceException
+from app.cores.exceptions.error_code import ErrorCode
 
 
 class SDSEmbedding(Embeddings):
@@ -11,14 +13,14 @@ class SDSEmbedding(Embeddings):
     def __init__(
         self, url: str = Provide[ConfigContianer.config.secrets.SDS_EMBEDDING_URL]
     ) -> None:
-        self.url = url
+        self.url = url.get_secret_value()
         super().__init__()
 
     def embed_documents(self, texts: list[str]) -> list[list[float]]:
         return self._get_embeded_vectors(texts)
 
     def embed_query(self, text: str) -> list[float]:
-        pass
+        return self._get_embeded_vectors([text])[0]
 
     def _get_embeded_vectors(self, texts: list[str]) -> list[list[float]]:
         url = self.url
@@ -34,6 +36,6 @@ class SDSEmbedding(Embeddings):
             vectors = json.loads(response.content.decode("utf-8"))["predictions"]
             return vectors
         except requests.exceptions.RequestException as e:  # Handle exceptions
-            # TODO: Need to define Error code
-            print("Error: ", e)
-            return []
+            raise ExternalServiceException(
+                "SDS Embedding Model", error_code=ErrorCode.EXTERNAL_SERVICE_ERROR
+            )

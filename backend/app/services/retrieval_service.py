@@ -35,3 +35,25 @@ class OpenAIRetrievalService(RetrievalService):
     @property
     def prompt_template(self) -> ChatPromptTemplate:  # test template
         return hub.pull("langchain-ai/retrieval-qa-chat")
+
+
+class BaseRetrievalService(RetrievalService):
+
+    @property
+    def prompt_template(self) -> ChatPromptTemplate:
+        return ChatPromptTemplate.from_messages(
+            [
+                (
+                    "system",
+                    """Answer any use questions based solely on the context below:
+                    <context>
+                    {context}
+                    </context>
+
+                    PLACEHOLDER
+                    chat_history
+                 """,
+                ),
+                ("human", """{input}"""),
+            ]
+        )
