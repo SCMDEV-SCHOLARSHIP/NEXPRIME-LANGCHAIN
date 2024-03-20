@@ -20,6 +20,7 @@ class DataBaseInfo(BaseModel, extra="forbid"):
     url: str = Field(frozen=True)
     username: str = Field(frozen=True)
     password: str = Field(frozen=True)
+    sql_log: bool = Field(frozen=True)
 
 
 class VectorStoreInfo(BaseModel, extra="forbid"):
@@ -34,6 +35,7 @@ class ApplicationInfo(BaseModel, extra="forbid"):
     host: str = Field(frozen=True)
     port: int = Field(frozen=True)
     url: str = Field(frozen=True)
+    log_level: str = Field(frozen=True)
 
 
 class EnvironSettings(BaseSettings, extra="forbid"):
@@ -48,6 +50,6 @@ class ConfigContianer(DeclarativeContainer):
     # config
     config = Configuration(
         default=EnvironSettings(
-            _env_file=as_posix(BasePath.ENVS, "dev.env")
+            _env_file=as_posix(BasePath.ENVS, "local.env")
         ).model_dump()
     )

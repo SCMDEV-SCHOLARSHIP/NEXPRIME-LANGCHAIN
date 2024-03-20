@@ -7,6 +7,7 @@ from dependency_injector.wiring import inject, Provide
 from app.cores.config import ConfigContianer
 from app.cores.exceptions.exceptions import ExternalServiceException
 from app.cores.exceptions.error_code import ErrorCode
+from app.cores.logger import logger
 
 
 class SDSEmbedding(Embeddings):
@@ -30,6 +31,8 @@ class SDSEmbedding(Embeddings):
         # request body
         data = {"instances": texts}
 
+        logger.info(f"[{self.__class__.__name__}] Get embeded vectors")
+        logger.info(f"[{self.__class__.__name__}] url: {url}")
         try:
             # make request
             response = requests.post(url, headers=headers, json=data)
@@ -37,6 +40,7 @@ class SDSEmbedding(Embeddings):
             vectors = json.loads(response.content.decode("utf-8"))["predictions"]
             return vectors
         except requests.exceptions.RequestException as e:  # Handle exceptions
+            logger.error(e)
             raise ExternalServiceException(
                 "SDS Embedding Model", error_code=ErrorCode.EXTERNAL_SERVICE_ERROR
             )

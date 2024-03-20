@@ -7,6 +7,7 @@ from app.middlewares import SQLAlchemyMiddleware
 from app.cores.exceptions import EXC_HDLRs
 from app.cores.di_container import DiContainer
 from app.cores.config import ConfigContianer
+import logging
 
 
 def create_app() -> FastAPI:
@@ -30,6 +31,7 @@ def create_app() -> FastAPI:
     app.include_router(router=routers.user_apis, tags=["User"])
 
     app.add_middleware(SQLAlchemyMiddleware)
+
     return app
 
 

@@ -3,10 +3,17 @@ from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.exception_handlers import http_exception_handler
 from pydantic import BaseModel
 
-from .exceptions import InvalidRequestException, ExternalServiceException, HTTPException, ErrorCode
+from .exceptions import (
+    InvalidRequestException,
+    ExternalServiceException,
+    HTTPException,
+    ErrorCode,
+)
 
 
-def get_error_schema(status_code:int , value:str ,error_code: ErrorCode) -> JSONResponse:
+def get_error_schema(
+    status_code: int, value: str, error_code: ErrorCode
+) -> JSONResponse:
     return JSONResponse(
         content={
             "code": error_code.value[0],
@@ -14,6 +21,7 @@ def get_error_schema(status_code:int , value:str ,error_code: ErrorCode) -> JSON
         },
         status_code=status_code,
     )
+
 
 async def bad_request_handler(
     request: Request, exc: InvalidRequestException

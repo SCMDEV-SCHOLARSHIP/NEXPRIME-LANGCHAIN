@@ -33,7 +33,12 @@ def reset_session_context(context: Token) -> None:
     session_context.reset(context)
 
 
-engine = create_async_engine(SQLALCHEMY_DATABASE_URL, pool_recycle=3600, pool_size=10)
+engine = create_async_engine(
+    SQLALCHEMY_DATABASE_URL,
+    pool_recycle=3600,
+    pool_size=10,
+    echo=_Container.config.db.sql_log(),
+)
 async_session_factory = sessionmaker(bind=engine, class_=AsyncSession)
 session: Union[AsyncSession, async_scoped_session] = async_scoped_session(
     session_factory=async_session_factory,
