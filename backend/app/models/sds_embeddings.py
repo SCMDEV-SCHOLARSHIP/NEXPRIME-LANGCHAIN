@@ -6,7 +6,7 @@ from dependency_injector.wiring import inject, Provide
 from app.cores.config import ConfigContianer
 from app.cores.exceptions.exceptions import ExternalServiceException
 from app.cores.exceptions.error_code import ErrorCode
-from fastapi.logger import logger
+from app.cores.logger import logger
 
 
 class SDSEmbedding(Embeddings):
@@ -30,8 +30,8 @@ class SDSEmbedding(Embeddings):
         # request body
         data = {"instances": texts}
 
-        logger.info("[SDSEmbedding] Get embeded vectors")
-        logger.info(f"[SDSEmbedding] url: {url}")
+        logger.info(f"[{self.__class__.__name__}] Get embeded vectors")
+        logger.info(f"[{self.__class__.__name__}] url: {url}")
         try:
             # make request
             response = requests.post(url, headers=headers, json=data)

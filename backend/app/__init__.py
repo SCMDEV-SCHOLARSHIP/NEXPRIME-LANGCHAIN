@@ -32,13 +32,6 @@ def create_app() -> FastAPI:
 
     app.add_middleware(SQLAlchemyMiddleware)
 
-    if app.config.base.log_level() == "DEBUG":
-        logging.basicConfig(level=logging.DEBUG)
-    elif app.config.base.log_level() == "INFO":
-        logging.basicConfig(level=logging.INFO)
-    elif app.config.base.log_level() == "ERROR":
-        logging.basicConfig(level=logging.ERROR)
-
     return app
 
 

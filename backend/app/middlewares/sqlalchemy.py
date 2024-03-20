@@ -3,7 +3,7 @@ from uuid import uuid4
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 from app.database.rdb.session import set_session_context, reset_session_context, session
-from fastapi.logger import logger
+from app.cores.logger import logger
 
 
 class SQLAlchemyMiddleware:
@@ -14,7 +14,7 @@ class SQLAlchemyMiddleware:
         session_id = str(uuid4())
         context = set_session_context(session_id=session_id)
         logger.debug(
-            f"[SQLAlchemyMiddleware] set session context with session_id : {session_id}"
+            f"[{self.__class__.__name__}] set session context with session_id : {session_id}"
         )
         try:
             await self.app(scope, receive, send)
@@ -22,7 +22,7 @@ class SQLAlchemyMiddleware:
             logger.error(e)
             raise e
         finally:
-            logger.debug("[SQLAlchemyMiddleware] Remove session")
+            logger.debug(f"[{self.__class__.__name__}] Remove session")
             await session.remove()
-            logger.debug("[SQLAlchemyMiddleware] reset session")
+            logger.debug(f"[{self.__class__.__name__}] reset session")
             reset_session_context(context=context)
