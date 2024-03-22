@@ -15,8 +15,8 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
         token_validator: Callable[
             [str], Coroutine[Any, Any, Any]
         ],  # TODO: 리턴 타입 지정
-        excluded_paths: set[str] = {"/", "/openapi.json"},
-        excluded_paths_regex: str = "^(/docs|/redoc|/auth)",
+        excluded_paths: set[str] = {"/", "/openapi.json", "/auth/token"},
+        excluded_paths_regex: str = "^(/docs|/redoc)",
     ) -> None:
         super().__init__(app)
         self.token_validator = token_validator
@@ -44,6 +44,9 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
             except HTTPException as e:  # TODO: 토큰 없음 예외 처리
                 return JSONResponse({e.status_code: e.detail})
             token = credentials.credentials
-            await self.token_validator(token)  # TODO: 에러 response면 여기서 반환
+            if url_path == "/auth/renewal":
+                request.state.access_token = token
+            else:
+                await self.token_validator(token)  # TODO: 에러 response면 여기서 반환
         response = await call_next(request)
         return response

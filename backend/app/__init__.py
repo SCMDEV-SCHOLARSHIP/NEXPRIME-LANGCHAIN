@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 
 import app.routers as routers
-from app.middlewares import SQLAlchemyMiddleware
+from app.middlewares import SQLAlchemyMiddleware, JWTAuthMiddleware
 
 from app.cores.exceptions import EXC_HDLRs
 from app.cores.di_container import DiContainer
@@ -29,7 +29,11 @@ def create_app() -> FastAPI:
     app.include_router(router=routers.embedding_apis, tags=["Embedding"])
     app.include_router(router=routers.retrieval_apis, tags=["Retrieval"])
     app.include_router(router=routers.user_apis, tags=["User"])
+    app.include_router(router=routers.auth_apis, tags=["Authentication"])
 
+    token_validator = di_container.auth_service().validate_token
+
+    app.add_middleware(JWTAuthMiddleware, token_validator=token_validator)
     app.add_middleware(SQLAlchemyMiddleware)
 
     return app
