@@ -1,7 +1,11 @@
 from enum import Enum
 from functools import wraps
+from typing import ParamSpec, TypeVar, Callable
 
 from app.database.rdb import session
+
+_T = TypeVar("_T")
+_P = ParamSpec("_P")
 
 
 class Propagation(Enum):
@@ -13,9 +17,9 @@ class Transactional:
     def __init__(self, propagation: Propagation = Propagation.REQUIRED):
         self.propagation = propagation
 
-    def __call__(self, function):
+    def __call__(self, function: Callable[_P, _T]) -> Callable[_P, _T]:
         @wraps(function)
-        async def decorator(*args, **kwargs):
+        async def decorator(*args: _P.args, **kwargs: _P.kwargs) -> _T:
             try:
                 if self.propagation == Propagation.REQUIRED:
                     result = await self._run_required(
