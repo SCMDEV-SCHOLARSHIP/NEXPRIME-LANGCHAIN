@@ -1,7 +1,7 @@
 import asyncio
 from pathlib import Path
 from abc import ABC
-from typing import TypeAlias, TypeVar
+from typing import TypeAlias, TypeVar, Any
 from dependency_injector.wiring import inject, Provide, Provider
 from dependency_injector.providers import Configuration
 
@@ -39,7 +39,10 @@ from app.services import (
 )
 
 
-class FeatureBuilder(ABC):
+class FeatureBuilder(ABC): ...
+
+
+class VectorstoreBuilder(FeatureBuilder):
     @inject
     def __init__(
         self, config: Configuration = Provider[ConfigContianer.config]
@@ -71,7 +74,7 @@ class FeatureBuilder(ABC):
             raise Exception("Value not found")
 
 
-class DocumentBuilder(FeatureBuilder):
+class DocumentBuilder(VectorstoreBuilder):
     async def make_loader(self, file_path: str) -> types.BaseLoader:
         ext = Path(file_path).suffix
         if ext == ".txt":
@@ -106,7 +109,7 @@ class DocumentBuilder(FeatureBuilder):
             raise Exception("Value not found")
 
 
-class RetrievalBuilder(FeatureBuilder):
+class RetrievalBuilder(VectorstoreBuilder):
     async def make_llm(self, model_name: str) -> types.BaseLanguageModel:
         engine = SupportedModels.LLM.get(model_name, None)
         if engine == "openai":
@@ -134,12 +137,7 @@ class RetrievalBuilder(FeatureBuilder):
 BuilderType = TypeVar("BuilderType", DocumentBuilder, RetrievalBuilder)
 
 
-class FeatureDirector(ABC):
-    async def check_valid_builder(  # TODO: NOT USED -> 삭제
-        self, builder: BuilderType, builder_type: type[BuilderType]
-    ) -> None:
-        if isinstance(builder, builder_type) == False:
-            raise Exception(f"{type(builder)} is not allowed")
+class FeatureDirector(ABC): ...
 
 
 class ServiceDirector(FeatureDirector):
@@ -169,7 +167,7 @@ class ServiceDirector(FeatureDirector):
         self,
         collection_name: str,
         embedding_model_name: str,
-        builder: BuilderType = Provide["_document_builder"],
+        builder: BuilderType = Provide["_vectorstore_builder"],
     ) -> EmbeddingService:
         embedding = await builder.make_embedding(embedding_model_name)
         vectorstore = await builder.make_vectorstore(collection_name, embedding)
@@ -179,7 +177,7 @@ class ServiceDirector(FeatureDirector):
     async def build_collection_service(
         self,
         collection_name: str,
-        builder: BuilderType = Provide["_document_builder"],
+        builder: BuilderType = Provide["_vectorstore_builder"],
     ) -> CollectionService:
         embedding = SDSEmbedding()
         vectorstore = await builder.make_vectorstore(collection_name, embedding)

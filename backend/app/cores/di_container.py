@@ -2,8 +2,10 @@ from dependency_injector.containers import DeclarativeContainer
 from dependency_injector.providers import Configuration, Singleton, Callable
 
 from app.services.user_service import UserService
-from app.repository import UserCrud
+from app.services.auth_service import AuthService
+from app.repository import UserCrud, JWTTokenCrud
 from app.cores.dependencies import (
+    VectorstoreBuilder,
     DocumentBuilder,
     RetrievalBuilder,
     ServiceDirector,
@@ -14,8 +16,10 @@ from app.cores.dependencies import (
 class DiContainer(DeclarativeContainer):
     # repositories
     user_crud = Singleton(UserCrud)
+    token_crud = Singleton(JWTTokenCrud)
 
     # builders / directors
+    _vectorstore_builder = Singleton(VectorstoreBuilder)
     _retrieval_builder = Singleton(RetrievalBuilder)
     _document_builder = Singleton(DocumentBuilder)
     _service_director = Singleton(ServiceDirector)
@@ -23,6 +27,7 @@ class DiContainer(DeclarativeContainer):
 
     # services
     user_service = Singleton(UserService, user_crud=user_crud)
+    auth_service = Singleton(AuthService, token_crud=token_crud)
 
     # (async) factories
     retrieval_service_factory = Callable(_service_director().build_retrieval_service)
