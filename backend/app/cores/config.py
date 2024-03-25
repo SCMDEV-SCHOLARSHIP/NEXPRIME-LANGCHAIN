@@ -34,7 +34,7 @@ class AuthenticationInfo(BaseModel, extra="forbid"):
     secret_key: SecretStr = Field(frozen=True)  # TODO: SecretInfo로 옮기기
     algorithm: str = Field(frozen=True)
     access_token_expire_minutes: int = Field(frozen=True)
-    refresh_token_expire_hours: int = Field(frozen=True)
+    refresh_token_expire_minutes: int = Field(frozen=True)
     issuer: str = Field(frozen=True)
 
 

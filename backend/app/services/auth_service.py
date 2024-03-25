@@ -118,13 +118,13 @@ class AuthService:
         access_token_expire_minutes: int = Provide[
             ConfigContianer.config.auth.access_token_expire_minutes
         ],
-        refresh_token_expire_hours: int = Provide[
-            ConfigContianer.config.auth.refresh_token_expire_hours
+        refresh_token_expire_minutes: int = Provide[
+            ConfigContianer.config.auth.refresh_token_expire_minutes
         ],
     ) -> dict[str, Any]:
         issued_at = datetime.now(UTC)
         access_exp = issued_at + timedelta(minutes=access_token_expire_minutes)
-        refresh_exp = issued_at + timedelta(hours=refresh_token_expire_hours)
+        refresh_exp = issued_at + timedelta(minutes=refresh_token_expire_minutes)
 
         access_claims, refresh_claims = await asyncio.gather(
             self.make_claims(
