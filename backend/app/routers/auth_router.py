@@ -1,6 +1,13 @@
 from fastapi import APIRouter, status, Depends, Request
 from dependency_injector.wiring import inject, Provide
 
+from app.cores.exceptions.error_code import ErrorCode
+from app.cores.exceptions.exceptions import (
+    ForbiddenAccessException,
+    InternalServerException,
+)
+from app.cores.logger import logger
+
 from app.cores.di_container import DiContainer
 import app.schemas.auth_schema as schema
 from app.services.auth_service import AuthService
@@ -46,12 +53,16 @@ async def issue_renewal_tokens(
 
     refresh_token = request.headers.get("refresh_token")
     if not refresh_token:
-        raise Exception(refresh_token)  # TODO: 헤더 없음
+        raise ForbiddenAccessException("Header", ErrorCode.INVALID_FORMAT)
 
     expired, claims = await checking_expired_task
-    if not expired:  # TODO: 엑세스토큰 만료 X, 재발급 불가
-        raise Exception("Not expired yet")
-    assert claims is not None
+    if not expired:
+        raise ForbiddenAccessException("token", ErrorCode.NOT_EXPIRED)
+    try:
+        assert claims is not None
+    except:
+        logger.error("Assertion Failed: {claims} is None")
+        raise InternalServerException("token claims", ErrorCode.INTERNAL_SERVER_ERROR)
 
     token_dto = schema.JWTTokenDTO(user_id=claims["sub"], refresh_token=refresh_token)
     result = await auth_service.issue_renewal_tokens(token_dto)
