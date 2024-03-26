@@ -10,8 +10,7 @@ class ExtendedStrEnum(StrEnum):
 
 
 class BasePath(StrEnum):
-    BACKEND = "backend"
-    APP = as_posix(BACKEND, "app")
+    APP = "app"
     CORES = as_posix(APP, "cores")
     DB = as_posix(APP, "database")
     MODELS = as_posix(APP, "models")
@@ -20,7 +19,7 @@ class BasePath(StrEnum):
     SECRETS = as_posix(APP, "secrets")
     SERVICES = as_posix(APP, "services")
     QDRANT = as_posix(DB, "qdrant")
-    ENVS = as_posix(BACKEND, "envs")
+    ENVS = "envs"
 
 
 class SupportedModels:
