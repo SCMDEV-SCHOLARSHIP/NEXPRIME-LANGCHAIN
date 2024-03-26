@@ -4,7 +4,7 @@ from app.database.rdb.session import Base
 
 
 class JWTToken(Base):
-    __tablename__ = "token"
+    __tablename__ = "nsa_refresh_token"
 
-    user_id = Column("UserID", String, primary_key=True, nullable=False)
-    refresh_token = Column("RefreshToken", String, nullable=False)
+    user_id = Column("user_id", String, primary_key=True)
+    refresh_token = Column("refresh_token", String, nullable=False)
