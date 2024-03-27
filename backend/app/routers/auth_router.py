@@ -3,7 +3,7 @@ from dependency_injector.wiring import inject, Provide
 
 from app.cores.exceptions.error_code import ErrorCode
 from app.cores.exceptions.exceptions import (
-    ForbiddenAccessException,
+    UnauthorizedException,
     InternalServerException,
 )
 from app.cores.logger import logger
@@ -53,11 +53,11 @@ async def issue_renewal_tokens(
 
     refresh_token = request.headers.get("refresh_token")
     if not refresh_token:
-        raise ForbiddenAccessException("Header", ErrorCode.INVALID_FORMAT)
+        raise UnauthorizedException("Header", ErrorCode.NOT_EXIST)
 
     expired, claims = await checking_expired_task
     if not expired:
-        raise ForbiddenAccessException("token", ErrorCode.NOT_EXPIRED)
+        raise UnauthorizedException("token", ErrorCode.NOT_EXPIRED)
     try:
         assert claims is not None
     except:

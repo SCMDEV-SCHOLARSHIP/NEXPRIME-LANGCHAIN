@@ -7,7 +7,7 @@ from jose.exceptions import JWTError, ExpiredSignatureError, JWTClaimsError
 from dependency_injector.wiring import inject, Provide
 
 from app.cores.exceptions.error_code import ErrorCode
-from app.cores.exceptions.exceptions import ForbiddenAccessException
+from app.cores.exceptions.exceptions import UnauthorizedException
 
 from app.cores.config import ConfigContianer
 from app.schemas.auth_schema import (
@@ -60,7 +60,7 @@ class AuthService:
             if claims["exp"] <= datetime.now(UTC).timestamp():
                 return True, claims
         except (JWTError, JWTClaimsError):
-            raise ForbiddenAccessException("token", ErrorCode.FORBIDDEN_ACCESS)
+            raise UnauthorizedException("token", ErrorCode.INVALID_FORMAT)
         return False, None
 
     @inject
@@ -77,9 +77,9 @@ class AuthService:
             )
             return claims
         except ExpiredSignatureError:
-            raise ForbiddenAccessException("token", ErrorCode.EXPIRED)
+            raise UnauthorizedException("token", ErrorCode.EXPIRED)
         except (JWTError, JWTClaimsError):
-            raise ForbiddenAccessException("token", ErrorCode.FORBIDDEN_ACCESS)
+            raise UnauthorizedException("token", ErrorCode.INVALID_FORMAT)
 
     async def check_token_in_db(self, token_dto: JWTTokenDTO) -> bool:
         db_token = await self.token_crud.get_token(token_dto.user_id)
@@ -107,12 +107,12 @@ class AuthService:
         refresh_token_user_id: str = claims["sub"]
 
         if access_token_user_id != refresh_token_user_id:
-            raise ForbiddenAccessException("token_user_id", ErrorCode.NOT_MATCHED_VALUE)
+            raise UnauthorizedException("token_user_id", ErrorCode.NOT_MATCHED_VALUE)
 
         if await self.check_token_in_db(token_dto):
             return await self.issue_new_tokens(refresh_token_user_id)
         else:
-            raise ForbiddenAccessException("refresh_token", ErrorCode.NOT_EXIST)
+            raise UnauthorizedException("refresh_token", ErrorCode.NOT_EXIST)
 
     @inject
     async def issue_new_tokens(
