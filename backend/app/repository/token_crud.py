@@ -10,6 +10,8 @@ class JWTTokenCrud:
         return query.scalars().all()
 
     async def save(self, token: JWTToken) -> None:
+        token.create_user_id = token.user_id
+        token.modified_user_id = token.user_id
         session.add(token)
         return
 
