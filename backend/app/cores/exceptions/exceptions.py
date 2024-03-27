@@ -26,6 +26,13 @@ class InvalidRequestException(SDSHTTPException):
         super().__init__(value, error_code, status.HTTP_400_BAD_REQUEST, detail)
 
 
+class UnauthorizedException(SDSHTTPException):
+    def __init__(
+        self, value: object, error_code: ErrorCode, detail: str | None = None
+    ) -> None:
+        super().__init__(value, error_code, status.HTTP_401_UNAUTHORIZED, detail)
+
+
 class ForbiddenAccessException(SDSHTTPException):
     def __init__(
         self, value: object, error_code: ErrorCode, detail: str | None = None
