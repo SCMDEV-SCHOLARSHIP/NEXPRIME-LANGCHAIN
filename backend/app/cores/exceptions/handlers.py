@@ -27,6 +27,12 @@ async def bad_request_handler(
     return await get_error_schema(exc)
 
 
+async def unauthorized_handler(
+    request: Request, exc: InvalidRequestException
+) -> JSONResponse:
+    return await get_error_schema(exc)
+
+
 async def forbidden_access_handler(
     request: Request, exc: ForbiddenAccessException
 ) -> JSONResponse:
