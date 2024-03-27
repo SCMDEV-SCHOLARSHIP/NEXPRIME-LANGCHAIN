@@ -8,8 +8,8 @@ from starlette.responses import Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.cores.exceptions.error_code import ErrorCode
-from app.cores.exceptions.handlers import forbidden_access_handler
-from app.cores.exceptions.exceptions import ForbiddenAccessException
+from app.cores.exceptions.handlers import unauthorized_handler
+from app.cores.exceptions.exceptions import UnauthorizedException
 
 
 class JWTAuthMiddleware(BaseHTTPMiddleware):
@@ -44,9 +44,9 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
             try:
                 credentials = await HTTPBearer()(request)
             except HTTPException:
-                return await forbidden_access_handler(
+                return await unauthorized_handler(
                     request,
-                    ForbiddenAccessException("Header", ErrorCode.INVALID_FORMAT),
+                    UnauthorizedException("Header", ErrorCode.INVALID_FORMAT),
                 )
             token = credentials.credentials
             if url_path == "/auth/renewal":
@@ -55,7 +55,7 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
                 try:
                     await self.token_validator(token)
                 # token_validator에 다른 exception 발생 시 추가할 것
-                except ForbiddenAccessException as e:
-                    return await forbidden_access_handler(request, e)
+                except UnauthorizedException as e:
+                    return await unauthorized_handler(request, e)
         response = await call_next(request)
         return response
