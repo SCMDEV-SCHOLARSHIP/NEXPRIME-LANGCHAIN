@@ -1,5 +1,9 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 from datetime import datetime
+
+from app.cores.exceptions import InvalidRequestException
+from app.cores.exceptions.error_code import ErrorCode
+
 
 from app.models.token import JWTToken
 
@@ -20,6 +24,16 @@ class JWTTokenIssueResponse(BaseModel):
 class JWTTokenDTO(BaseModel):
     user_id: str
     refresh_token: str
+    create_datetime: datetime | None = None
+    create_user_id: str | None = None
+    modified_datetime: datetime | None = None
+    modified_user_id: str | None = None
+
+    @validator("user_id")
+    def validate_user_id(cls, value):
+        if not value or len(value) == 0:
+            raise InvalidRequestException("user_id", error_code=ErrorCode.NOT_EXIST)
+        return value
 
 
 def convert_token_to_token_dto(token: JWTToken) -> JWTTokenDTO:
