@@ -6,4 +6,4 @@ from .retrieval_service import (
     BaseRetrievalService,
 )
 from .user_service import UserService
-from .file_service import FileUploadService
+from .file_service import FileService

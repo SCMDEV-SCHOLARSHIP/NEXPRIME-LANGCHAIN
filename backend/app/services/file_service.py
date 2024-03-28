@@ -17,7 +17,7 @@ from os.path import join, splitext
 from uuid import uuid4
 
 
-class FileUploadService:
+class FileService:
 
     @inject
     def __init__(
