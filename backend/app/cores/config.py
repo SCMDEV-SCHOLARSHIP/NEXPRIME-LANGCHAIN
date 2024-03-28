@@ -30,6 +30,10 @@ class VectorStoreInfo(BaseModel, extra="forbid"):
     url: str = Field(frozen=True)
 
 
+class FileArchiveInfo(BaseModel, extra="forbid"):
+    path: str = Field(frozen=True)
+
+
 class AuthenticationInfo(BaseModel, extra="forbid"):
     secret_key: SecretStr = Field(frozen=True)  # TODO: SecretInfo로 옮기기
     algorithm: str = Field(frozen=True)
@@ -51,6 +55,7 @@ class EnvironSettings(BaseSettings, extra="forbid"):
     base: ApplicationInfo
     db: DataBaseInfo
     vectorstore: VectorStoreInfo
+    file_archive: FileArchiveInfo
     auth: AuthenticationInfo
     secrets: SecretInfo = SecretInfo()
 
@@ -59,6 +64,6 @@ class ConfigContianer(DeclarativeContainer):
     # config
     config = Configuration(
         default=EnvironSettings(
-            _env_file=as_posix(BasePath.ENVS, "local.env")
+            _env_file=as_posix(BasePath.ENVS, "dev.env")
         ).model_dump()
     )
