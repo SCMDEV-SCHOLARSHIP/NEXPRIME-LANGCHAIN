@@ -1,7 +1,12 @@
+# TODO: 사용할 계획 없으면 다음 버전에서 삭제
+
 from pydantic import SecretStr, Field, BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from dependency_injector.containers import DeclarativeContainer
 from dependency_injector.providers import Configuration
+
+from app.cores.logger import SDSLoggerMaker
+from app.database.rdb.session import SDSAsyncSessionManager
 
 from app.cores.constants import BasePath
 from app.cores.utils import as_posix
@@ -67,3 +72,4 @@ class ConfigContianer(DeclarativeContainer):
             _env_file=as_posix(BasePath.ENVS, "dev.env")
         ).model_dump()
     )
+    ...
