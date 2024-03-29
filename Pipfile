@@ -19,11 +19,12 @@ langchain-openai = "==0.0.6"
 langchainhub = "==0.1.14"
 psycopg2 = "==2.9.9"
 asyncpg = ">=0.29.0"
-dependency-injector = ">=4.41.0"
 text-generation = "==0.6.1"
 python-jose = {extras = ["cryptography"], version = ">=3.3.0"}
 passlib = {extras = ["bcrypt"], version = ">=1.7.4"}
 python-multipart = ">=0.0.9"
+dependency-injector = {extras = ["yaml"], version = "==4.41.0"}
+aiofiles = ">=23.2.1"
 
 [dev-packages]
 pytest = "==8.0.0"
