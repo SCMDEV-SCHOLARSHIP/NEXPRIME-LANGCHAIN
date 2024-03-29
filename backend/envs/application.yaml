@@ -1,0 +1,30 @@
+base:
+  project_name: KMG
+  host: localhost
+  port: 8000
+  url: "localhost:8000"
+  log_level: INFO
+
+db:
+  url: ""
+  username: nexprimescmmgr
+  password: Nexprime1!
+  sql_log: True
+
+vectorstore:
+  engine: qdrant
+  host: ""
+  port: 6333
+  url: ""
+
+auth:
+  secret_key: bd435752b747d5c51b5e431c409361659671ecd24e82cf9bea91f9dc5577a8f78416781b8dfc9d92496c7c30a53c6a507cac1afab0af5155f68e0401c87326e3
+  algorithm: HS256
+  access_token:
+    expire_minutes: 10
+  refresh_token:
+    expire_minutes: 1440
+  issuer: KMGmgr
+
+file_archive: 
+  path: "C:\\nsa_files"

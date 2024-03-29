@@ -1,0 +1,9 @@
+base:
+  log_level: DEBUG
+
+db:
+  url: "70.50.180.90:5432/langchainscmmgr"
+
+vectorstore:
+  host: "70.50.180.90"
+  url: "70.50.180.90:6333"
