@@ -1,10 +1,15 @@
 from dependency_injector.containers import DeclarativeContainer
 from dependency_injector.providers import Configuration, Singleton, Callable
 
+from app.cores.constants import BasePath
+from app.cores.utils import as_posix
+
 from app.services.user_service import UserService
 from app.services.file_service import FileService
 from app.services.auth_service import AuthService
-from app.repository import UserCrud, FileCrud, JWTTokenCrud
+
+from app.repository import UserCrud, JWTTokenCrud, FileCrud
+
 from app.cores.dependencies import (
     VectorstoreBuilder,
     DocumentBuilder,
@@ -15,6 +20,15 @@ from app.cores.dependencies import (
 
 
 class DiContainer(DeclarativeContainer):
+    # base
+    config = Configuration(
+        yaml_files=[
+            as_posix(BasePath.ENVS, "application.yaml"),
+            as_posix(BasePath.ENVS, "local.yaml"),
+            as_posix(BasePath.SECRETS, "secret.yaml"),
+        ],
+    )
+
     # repositories
     user_crud = Singleton(UserCrud)
     file_crud = Singleton(FileCrud)

@@ -2,14 +2,12 @@ import asyncio
 from typing import Any
 from datetime import datetime, timedelta, UTC
 from jose import jwt
-from pydantic import SecretStr
 from jose.exceptions import JWTError, ExpiredSignatureError, JWTClaimsError
 from dependency_injector.wiring import inject, Provide
 
 from app.cores.exceptions.error_code import ErrorCode
 from app.cores.exceptions.exceptions import UnauthorizedException
 
-from app.cores.config import ConfigContianer
 from app.schemas.auth_schema import (
     JWTTokenDTO,
     convert_token_dto_to_token,
@@ -23,11 +21,11 @@ class AuthService:
     def __init__(
         self,
         token_crud: JWTTokenCrud,
-        secret_key: SecretStr = Provide[ConfigContianer.config.auth.secret_key],
-        algo: str = Provide[ConfigContianer.config.auth.algorithm],
+        secret_key: str = Provide["config.auth.secret_key"],
+        algo: str = Provide["config.auth.algorithm"],
     ) -> None:
         self.token_crud = token_crud
-        self.secret_key = secret_key.get_secret_value()
+        self.secret_key = secret_key
         self.algo = algo
 
     @inject
@@ -35,7 +33,7 @@ class AuthService:
         self,
         sub: str,
         exp: int,
-        iss: str = Provide[ConfigContianer.config.auth.issuer],
+        iss: str = Provide["config.auth.issuer"],
         **extra_claims,
     ) -> dict[str, Any]:
         base_claims = {"iss": iss, "sub": sub, "exp": exp}
@@ -47,7 +45,7 @@ class AuthService:
 
     @inject
     async def check_expired(
-        self, token: str, iss: str = Provide[ConfigContianer.config.auth.issuer]
+        self, token: str, iss: str = Provide["config.auth.issuer"]
     ) -> tuple[bool, dict[str, Any] | None]:
         try:
             claims = jwt.decode(
@@ -65,7 +63,7 @@ class AuthService:
 
     @inject
     async def validate_token(
-        self, token: str, iss: str = Provide[ConfigContianer.config.auth.issuer]
+        self, token: str, iss: str = Provide["config.auth.issuer"]
     ) -> dict[str, Any]:
         try:
             claims = jwt.decode(
@@ -92,6 +90,8 @@ class AuthService:
         db_token = await self.token_crud.get_token(token_dto.user_id)
         if db_token:
             db_token.refresh_token = token_dto.refresh_token
+            db_token.modified_datetime = datetime.now()
+            db_token.modified_user_id = token_dto.user_id
             return
         else:
             db_token = convert_token_dto_to_token(token_dto)
@@ -119,10 +119,10 @@ class AuthService:
         self,
         user_id: str,
         access_token_expire_minutes: int = Provide[
-            ConfigContianer.config.auth.access_token_expire_minutes
+            "config.auth.access_token.expire_minutes"
         ],
         refresh_token_expire_minutes: int = Provide[
-            ConfigContianer.config.auth.refresh_token_expire_minutes
+            "config.auth.refresh_token.expire_minutes"
         ],
     ) -> dict[str, Any]:
         issued_at = datetime.now(UTC)

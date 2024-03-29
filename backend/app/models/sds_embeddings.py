@@ -1,10 +1,8 @@
 import requests
-from pydantic import SecretStr
 from langchain_core.embeddings import Embeddings
 import json
 from dependency_injector.wiring import inject, Provide
 
-from app.cores.config import ConfigContianer
 from app.cores.exceptions.exceptions import ExternalServiceException
 from app.cores.exceptions.error_code import ErrorCode
 from app.cores.logger import logger
@@ -12,10 +10,8 @@ from app.cores.logger import logger
 
 class SDSEmbedding(Embeddings):
     @inject
-    def __init__(
-        self, url: SecretStr = Provide[ConfigContianer.config.secrets.SDS_EMBEDDING_URL]
-    ) -> None:
-        self.url = url.get_secret_value()
+    def __init__(self, url: str = Provide["config.secrets.sds.embedding_url"]) -> None:
+        self.url = url
         super().__init__()
 
     def embed_documents(self, texts: list[str]) -> list[list[float]]:

@@ -26,7 +26,6 @@ from langchain_openai import ChatOpenAI
 
 from app.database import ExtendedQdrant
 
-from app.cores.config import ConfigContianer
 import app.cores.common_types as types
 from app.cores.constants import SupportedModels, SupportedVectorStores
 
@@ -44,9 +43,7 @@ class FeatureBuilder(ABC): ...
 
 class VectorstoreBuilder(FeatureBuilder):
     @inject
-    def __init__(
-        self, config: Configuration = Provider[ConfigContianer.config]
-    ) -> None:
+    def __init__(self, config: Configuration = Provider["config"]) -> None:
         self.config = config
         super().__init__()
 
@@ -66,7 +63,7 @@ class VectorstoreBuilder(FeatureBuilder):
         if engine == "openai":
             return OpenAIEmbeddings(
                 model=model_name,
-                openai_api_key=self.config.secrets.OPENAI_API_KEY().get_secret_value(),
+                openai_api_key=self.config.secrets.openai_api_key(),
             )
         elif engine == "sds":
             return SDSEmbedding()
@@ -116,11 +113,11 @@ class RetrievalBuilder(VectorstoreBuilder):
             return ChatOpenAI(
                 model=model_name,
                 temperature=0,
-                api_key=self.config.secrets.OPENAI_API_KEY().get_secret_value(),
+                api_key=self.config.secrets.openai_api_key(),
             )
         elif engine == "sds":
             return HuggingFaceTextGenInference(
-                inference_server_url=self.config.secrets.SDS_LLAMA_URL().get_secret_value(),
+                inference_server_url=self.config.secrets.sds.llama_url(),
                 max_new_tokens=512,
                 top_k=10,
                 top_p=0.95,
