@@ -4,8 +4,7 @@ from starlette.types import ASGIApp, Receive, Scope, Send
 from dependency_injector.wiring import inject, Provide
 from sqlalchemy.ext.asyncio import async_scoped_session
 
-from app.database.rdb.session import set_session_context, reset_session_context, session
-from app.cores.logger import logger
+from app.database.rdb.session import SDSAsyncSessionManager
 
 
 class SQLAlchemyMiddleware:
@@ -19,9 +18,11 @@ class SQLAlchemyMiddleware:
         receive: Receive,
         send: Send,
         logger: Logger = Provide["logger"],
+        session_mgr: SDSAsyncSessionManager = Provide["session_mgr"],
+        session: async_scoped_session = Provide["session"],
     ) -> None:
         session_id = str(uuid4())
-        context = set_session_context(session_id=session_id)
+        context = session_mgr.set_session_context(session_id=session_id)
         logger.debug(
             f"[{self.__class__.__name__}] set session context with session_id : {session_id}"
         )
@@ -34,4 +35,4 @@ class SQLAlchemyMiddleware:
             logger.debug(f"[{self.__class__.__name__}] Remove session")
             await session.remove()
             logger.debug(f"[{self.__class__.__name__}] reset session")
-            reset_session_context(context=context)
+            session_mgr.reset_session_context(context=context)

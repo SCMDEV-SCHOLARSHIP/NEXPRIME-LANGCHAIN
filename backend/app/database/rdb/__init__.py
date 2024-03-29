@@ -1,12 +1,10 @@
-from .session import Base, session, set_session_context, reset_session_context
+from .session import Base, SDSAsyncSessionManager
 from .transactional import Transactional, Propagation
 
 
 __all__ = [
     "Base",
-    "session",
+    "SDSAsyncSessionManager",
     "Transactional",
     "Propagation",
-    "set_session_context",
-    "reset_session_context",
 ]

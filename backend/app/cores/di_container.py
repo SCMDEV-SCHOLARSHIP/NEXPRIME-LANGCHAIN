@@ -9,6 +9,7 @@ from app.services.user_service import UserService
 from app.services.file_service import FileService
 from app.services.auth_service import AuthService
 
+from app.database.rdb.session import SDSAsyncSessionManager
 from app.repository import UserCrud, JWTTokenCrud, FileCrud
 
 from app.cores.dependencies import (
@@ -31,6 +32,8 @@ class DiContainer(DeclarativeContainer):
     )
     _logger_maker = Singleton(SDSLoggerMaker)
     logger = _logger_maker.provided.logger
+    session_mgr = Singleton(SDSAsyncSessionManager)
+    session = session_mgr.provided.session
 
     # repositories
     user_crud = Singleton(UserCrud)
