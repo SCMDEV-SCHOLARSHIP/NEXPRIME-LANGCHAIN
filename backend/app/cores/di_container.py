@@ -3,6 +3,7 @@ from dependency_injector.providers import Configuration, Singleton, Callable
 
 from app.cores.constants import BasePath
 from app.cores.utils import as_posix
+from app.cores.logger import SDSLoggerMaker
 
 from app.services.user_service import UserService
 from app.services.file_service import FileService
@@ -28,6 +29,8 @@ class DiContainer(DeclarativeContainer):
             as_posix(BasePath.SECRETS, "secret.yaml"),
         ],
     )
+    _logger_maker = Singleton(SDSLoggerMaker)
+    logger = _logger_maker.provided.logger
 
     # repositories
     user_crud = Singleton(UserCrud)
