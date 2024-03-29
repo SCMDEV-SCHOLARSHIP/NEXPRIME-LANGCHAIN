@@ -1,0 +1,6 @@
+db:
+  url: "localhost/langchainscmmgr"
+
+vectorstore:
+  host: localhost
+  url: "localhost:6333"
