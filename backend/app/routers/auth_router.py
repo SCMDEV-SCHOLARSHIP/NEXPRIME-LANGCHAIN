@@ -1,12 +1,12 @@
 from fastapi import APIRouter, status, Depends, Request
 from dependency_injector.wiring import inject, Provide
+from logging import Logger
 
 from app.cores.exceptions.error_code import ErrorCode
 from app.cores.exceptions.exceptions import (
     UnauthorizedException,
     InternalServerException,
 )
-from app.cores.logger import logger
 
 from app.cores.di_container import DiContainer
 import app.schemas.auth_schema as schema
@@ -46,6 +46,7 @@ async def issue_new_tokens(
 async def issue_renewal_tokens(
     request: Request,
     auth_service: AuthService = Depends(Provide[DiContainer.auth_service]),
+    logger: Logger = Depends(Provide["logger"]),
 ) -> schema.JWTTokenIssueResponse:
     access_token: str = request.state.access_token
     del request.state.access_token

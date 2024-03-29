@@ -1,6 +1,8 @@
 from uuid import uuid4
-
+from logging import Logger
 from starlette.types import ASGIApp, Receive, Scope, Send
+from dependency_injector.wiring import inject, Provide
+from sqlalchemy.ext.asyncio import async_scoped_session
 
 from app.database.rdb.session import set_session_context, reset_session_context, session
 from app.cores.logger import logger
@@ -10,7 +12,14 @@ class SQLAlchemyMiddleware:
     def __init__(self, app: ASGIApp) -> None:
         self.app = app
 
-    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+    @inject
+    async def __call__(
+        self,
+        scope: Scope,
+        receive: Receive,
+        send: Send,
+        logger: Logger = Provide["logger"],
+    ) -> None:
         session_id = str(uuid4())
         context = set_session_context(session_id=session_id)
         logger.debug(

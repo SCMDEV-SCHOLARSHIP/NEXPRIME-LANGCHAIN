@@ -1,11 +1,11 @@
 import requests
+from logging import Logger
 from langchain_core.embeddings import Embeddings
 import json
 from dependency_injector.wiring import inject, Provide
 
 from app.cores.exceptions.exceptions import ExternalServiceException
 from app.cores.exceptions.error_code import ErrorCode
-from app.cores.logger import logger
 
 
 class SDSEmbedding(Embeddings):
@@ -20,7 +20,10 @@ class SDSEmbedding(Embeddings):
     def embed_query(self, text: str) -> list[float]:
         return self._get_embeded_vectors([text])[0]
 
-    def _get_embeded_vectors(self, texts: list[str]) -> list[list[float]]:
+    @inject
+    def _get_embeded_vectors(
+        self, texts: list[str], logger: Logger = Provide["logger"]
+    ) -> list[list[float]]:
         url = self.url
         headers = {"Content-Type": "application/json"}
 
