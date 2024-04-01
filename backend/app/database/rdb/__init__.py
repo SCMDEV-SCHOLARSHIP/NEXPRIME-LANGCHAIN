@@ -1,10 +1,10 @@
-from .session import Base, SDSAsyncSessionManager
+from .session import Base, AsyncSessionManager
 from .transactional import Transactional, Propagation
 
 
 __all__ = [
     "Base",
-    "SDSAsyncSessionManager",
+    "AsyncSessionManager",
     "Transactional",
     "Propagation",
 ]

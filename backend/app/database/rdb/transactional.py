@@ -4,7 +4,6 @@ from typing import ParamSpec, TypeVar, Callable
 from sqlalchemy.ext.asyncio import async_scoped_session
 from dependency_injector.wiring import inject, Provide
 
-from app.database.rdb.session import SDSAsyncSessionManager
 
 _T = TypeVar("_T")
 _P = ParamSpec("_P")

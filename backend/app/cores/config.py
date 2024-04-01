@@ -5,8 +5,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from dependency_injector.containers import DeclarativeContainer
 from dependency_injector.providers import Configuration
 
-from app.cores.logger import SDSLoggerMaker
-from app.database.rdb.session import SDSAsyncSessionManager
+from app.cores.logger import LoggerMaker
+from app.database.rdb.session import AsyncSessionManager
 
 from app.cores.constants import BasePath
 from app.cores.utils import as_posix

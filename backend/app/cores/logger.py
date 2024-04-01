@@ -3,7 +3,7 @@ from fastapi.logger import logger as fastapi_logger
 from dependency_injector.wiring import inject, Provide
 
 
-class SDSLoggerMaker:
+class LoggerMaker:
     def __init__(self) -> None:
         self.logger = fastapi_logger
         self.handler = logging.StreamHandler()
