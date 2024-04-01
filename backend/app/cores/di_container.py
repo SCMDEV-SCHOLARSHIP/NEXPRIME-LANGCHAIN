@@ -3,13 +3,13 @@ from dependency_injector.providers import Configuration, Singleton, Callable
 
 from app.cores.constants import BasePath
 from app.cores.utils import as_posix
-from app.cores.logger import SDSLoggerMaker
+from app.cores.logger import LoggerMaker
 
 from app.services.user_service import UserService
 from app.services.file_service import FileService
 from app.services.auth_service import AuthService
 
-from app.database.rdb.session import SDSAsyncSessionManager
+from app.database.rdb.session import AsyncSessionManager
 from app.repository import UserCrud, JWTTokenCrud, FileCrud
 
 from app.cores.dependencies import (
@@ -30,9 +30,9 @@ class DiContainer(DeclarativeContainer):
             as_posix(BasePath.SECRETS, "secret.yaml"),
         ],
     )
-    _logger_maker = Singleton(SDSLoggerMaker)
+    _logger_maker = Singleton(LoggerMaker)
     logger = _logger_maker.provided.logger
-    session_mgr = Singleton(SDSAsyncSessionManager)
+    session_mgr = Singleton(AsyncSessionManager)
     session = session_mgr.provided.session
 
     # repositories

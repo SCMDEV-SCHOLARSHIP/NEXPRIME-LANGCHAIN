@@ -11,12 +11,11 @@ from typing import Union
 from dependency_injector.wiring import inject, Provider
 from dependency_injector.providers import Configuration
 
-# from app.cores.config import ConfigContianer as _Container
 
 Base = declarative_base()
 
 
-class SDSAsyncSessionManager:
+class AsyncSessionManager:
     def __init__(self) -> None:
         self.db_url = self.make_db_url()
         self.session_context: ContextVar[str] = ContextVar("session_context")

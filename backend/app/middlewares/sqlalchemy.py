@@ -4,7 +4,7 @@ from starlette.types import ASGIApp, Receive, Scope, Send
 from dependency_injector.wiring import inject, Provide
 from sqlalchemy.ext.asyncio import async_scoped_session
 
-from app.database.rdb.session import SDSAsyncSessionManager
+from app.database.rdb.session import AsyncSessionManager
 
 
 class SQLAlchemyMiddleware:
@@ -18,7 +18,7 @@ class SQLAlchemyMiddleware:
         receive: Receive,
         send: Send,
         logger: Logger = Provide["logger"],
-        session_mgr: SDSAsyncSessionManager = Provide["session_mgr"],
+        session_mgr: AsyncSessionManager = Provide["session_mgr"],
         session: async_scoped_session = Provide["session"],
     ) -> None:
         session_id = str(uuid4())
