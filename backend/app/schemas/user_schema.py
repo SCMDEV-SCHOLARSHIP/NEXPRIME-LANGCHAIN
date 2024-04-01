@@ -11,6 +11,8 @@ class UserDTO(BaseModel, extra="forbid"):
     user_id: str
     user_name: str
     user_email: str
+    user_password: str
+    user_password_check: str
     create_datetime: Optional[datetime] = Field(default=None)
     create_user_id: Optional[str] = Field(default=None)
     modified_datetime: Optional[datetime] = Field(default=None)
@@ -20,6 +22,12 @@ class UserDTO(BaseModel, extra="forbid"):
     def validate_user_id(cls, value):
         if not value or len(value) == 0:
             raise InvalidRequestException("user_id", error_code=ErrorCode.NOT_EXIST)
+        return value
+
+    @validator("user_password")
+    def validate_user_password(cls, value):
+        if len(value) < 8:
+            raise InvalidRequestException("user_password", error_code=ErrorCode.BAD_REQUEST)
         return value
 
     @validator("user_email")
@@ -38,10 +46,12 @@ class UserDTO(BaseModel, extra="forbid"):
 
 def convert_user_to_user_dto(user: User) -> UserDTO:
     user_dict: Dict = user.__dict__
+    user_dict["user_password_check"] = user.user_password
     del user_dict["_sa_instance_state"]
     return UserDTO(**user_dict)
 
 
 def convert_user_dto_to_user(user_dto: UserDTO) -> User:
     user_dict: Dict = user_dto.__dict__
+    del user_dict["user_password_check"]
     return User(**user_dict)

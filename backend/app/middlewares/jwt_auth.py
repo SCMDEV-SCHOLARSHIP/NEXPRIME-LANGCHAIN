@@ -17,7 +17,7 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
         self,
         app: ASGIApp,
         token_validator: Callable[[str], Coroutine[Any, Any, dict[str, Any]]],
-        excluded_paths: set[str] = {"/", "/openapi.json", "/auth/token"},
+        excluded_paths: set[str] = {"/", "/openapi.json", "/auth/token", "/users/sign-up", "/auth/login"},
         excluded_paths_regex: str = "^(/docs|/redoc)",
     ) -> None:
         super().__init__(app)

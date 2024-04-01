@@ -10,6 +10,7 @@ class User(Base):
     user_id = Column(String, primary_key=True)
     user_name = Column(String, nullable=True)
     user_email = Column(String, nullable=False)
+    user_password = Column(String, nullable=False)
     create_datetime = Column(TIMESTAMP, nullable=False, default=datetime.now)
     create_user_id = Column(String, nullable=False, default=user_id)
     modified_datetime = Column(TIMESTAMP, nullable=False, default=datetime.now)

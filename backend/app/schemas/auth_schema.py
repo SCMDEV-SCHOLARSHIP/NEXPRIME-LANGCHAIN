@@ -35,6 +35,9 @@ class JWTTokenDTO(BaseModel):
             raise InvalidRequestException("user_id", error_code=ErrorCode.NOT_EXIST)
         return value
 
+class LoginDTO(BaseModel):
+    user_id: str
+    user_password: str
 
 def convert_token_to_token_dto(token: JWTToken) -> JWTTokenDTO:
     token_dict = token.__dict__

@@ -8,6 +8,7 @@ from app.repository import UserCrud
 from app.database.rdb import Transactional, Propagation
 from app.cores.exceptions.exceptions import InvalidRequestException
 from app.cores.exceptions.error_code import ErrorCode
+import bcrypt
 
 
 class UserService:
@@ -18,10 +19,18 @@ class UserService:
 
     @Transactional(propagation=Propagation.REQUIRED)
     async def create_user(self, user_dto: UserDTO) -> UserDTO:
+        if user_dto.user_password != user_dto.user_password_check:
+            raise InvalidRequestException(
+                "user_password_check", error_code=ErrorCode.BAD_REQUEST
+            )
+
         if await self.user_crud.get_user(user_dto.user_id) != None:
             raise InvalidRequestException(
                 "user_id", error_code=ErrorCode.DUPLICATED_VALUE
             )
+
+        hashed_password = bcrypt.hashpw(user_dto.user_password.encode(), bcrypt.gensalt()).decode("utf-8")
+        user_dto.user_password = hashed_password
 
         user = convert_user_dto_to_user(user_dto)
 
@@ -35,3 +44,8 @@ class UserService:
             user_dtos.append(convert_user_to_user_dto(user))
 
         return user_dtos
+
+    async def get_user(self, user_id: str) -> UserDTO:
+        user = await self.user_crud.get_user(user_id)
+
+        return convert_user_to_user_dto(user)

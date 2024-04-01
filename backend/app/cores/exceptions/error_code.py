@@ -10,6 +10,7 @@ class ErrorCode(Enum):
     FORBIDDEN_ACCESS = ("KMG_ERR_R_006", "Forbidden access")
     EXPIRED = ("KMG_ERR_R_007", "Expired")
     NOT_EXPIRED = ("KMG_ERR_R_008", "Not expired yet")
+    INCORRECT_PASSWORD = ("KMG_ERR_R_009", "Incorrect password value")
 
     INTERNAL_SERVER_ERROR = ("KMG_ERR_S_001", "Internal Server Error")
 

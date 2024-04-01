@@ -1,3 +1,4 @@
+import bcrypt
 from fastapi import APIRouter, status, Depends, Request
 from dependency_injector.wiring import inject, Provide
 from logging import Logger
@@ -11,6 +12,8 @@ from app.cores.exceptions.exceptions import (
 from app.cores.di_container import DiContainer
 import app.schemas.auth_schema as schema
 from app.services.auth_service import AuthService
+from app.services.user_service import UserService
+import datetime
 
 router = APIRouter(prefix="/auth")
 
@@ -74,3 +77,31 @@ async def issue_renewal_tokens(
     )
     await auth_service.save_token_in_db(token_dto)
     return response
+
+@router.post(
+    "/login",
+    response_model=schema.JWTTokenIssueResponse,
+    status_code=status.HTTP_200_OK,
+)
+@inject
+async def login(
+    login_dto: schema.LoginDTO,
+    auth_service: AuthService = Depends(Provide[DiContainer.auth_service]),
+    user_service: UserService = Depends(Provide[DiContainer.user_service]),
+) -> schema.JWTTokenIssueResponse:
+    user_dto = await user_service.get_user(login_dto.user_id)
+
+    if not auth_service.check_password_match(login_dto.user_password, user_dto.user_password):
+        raise UnauthorizedException("user_password", ErrorCode.BAD_REQUEST)
+
+    #TODO: issue token logic
+    token = "issue token!!"
+    now = datetime.datetime.now()
+    user_id = user_dto.user_id
+    return schema.JWTTokenIssueResponse(**{
+        "user_id": user_id,
+        "access_token": token,
+        "expires_at": now,
+        "refresh_token": token,
+        "refresh_token_expires_at": now,
+    })
