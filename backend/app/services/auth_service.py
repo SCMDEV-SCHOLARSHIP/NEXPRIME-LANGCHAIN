@@ -1,6 +1,8 @@
 import asyncio
 from typing import Any
 from datetime import datetime, timedelta, UTC
+
+import bcrypt
 from jose import jwt
 from jose.exceptions import JWTError, ExpiredSignatureError, JWTClaimsError
 from dependency_injector.wiring import inject, Provide
@@ -151,3 +153,7 @@ class AuthService:
             "refresh_token": new_refresh_token,
             "refresh_token_expires_at": refresh_exp,
         }
+
+    def check_password_match(self, password, hashed_password) -> bool:
+        return bcrypt.checkpw(password.encode("utf-8"), hashed_password.encode("utf-8"))
+

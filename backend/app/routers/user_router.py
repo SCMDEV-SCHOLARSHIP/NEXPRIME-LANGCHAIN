@@ -8,7 +8,7 @@ router = APIRouter(prefix="/users")
 
 
 @router.post(
-    "/",
+    "/sign-up",
     response_model=UserDTO,
     status_code=status.HTTP_201_CREATED,
     summary="Create User",
