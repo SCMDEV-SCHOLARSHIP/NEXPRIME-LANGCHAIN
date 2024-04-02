@@ -47,5 +47,7 @@ class UserService:
 
     async def get_user(self, user_id: str) -> UserDTO:
         user = await self.user_crud.get_user(user_id)
-
+        if user is None:
+            raise InvalidRequestException("user", ErrorCode.NOT_EXIST)
+            
         return convert_user_to_user_dto(user)
