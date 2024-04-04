@@ -20,12 +20,7 @@ class JWTTokenCrud:
         self.session.add(token)
         return
 
-    async def get_token(self, user_id: str) -> JWTToken:
+    async def get_token(self, user_id: str) -> JWTToken | None:
         query = select(JWTToken).where(JWTToken.user_id == user_id)
         result = await self.session.execute(query)
         return result.scalars().first()
-
-    async def delete(self, token: JWTToken) -> None:
-        db_token = await self.get_token(token)
-        if db_token:
-            await self.session.delete(db_token)
