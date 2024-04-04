@@ -5,6 +5,7 @@ from dependency_injector.wiring import inject, Provide
 from app.cores.exceptions import InvalidRequestException
 from app.cores.exceptions.error_code import ErrorCode
 
+from app.cores.utils import HEADERS
 from app.cores.di_container import DiContainer
 import app.schemas.login_schema as schema
 import app.schemas.auth_schema as auth_schema
@@ -42,8 +43,7 @@ async def login(
 
 
 @router.post(
-    "/logout",
-    status_code=status.HTTP_204_NO_CONTENT,
+    "/logout", status_code=status.HTTP_204_NO_CONTENT, dependencies=[HEADERS["AT"]]
 )
 @inject
 async def logout(

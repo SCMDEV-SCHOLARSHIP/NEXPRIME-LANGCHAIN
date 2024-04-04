@@ -2,11 +2,13 @@ from fastapi import APIRouter, Path, status, Depends
 from typing import Callable, Coroutine, Any
 from dependency_injector.wiring import inject, Provide
 
+from app.cores.utils import HEADERS
 from app.cores.di_container import DiContainer
 import app.schemas.collection_schema as schema
 from app.services.collection_service import CollectionService
 
-router = APIRouter(prefix="/collections")
+
+router = APIRouter(prefix="/collections", dependencies=[HEADERS["AT"]])
 
 
 @router.get(

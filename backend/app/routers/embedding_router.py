@@ -3,16 +3,14 @@ from fastapi import APIRouter, Path, status, HTTPException, Depends
 from dependency_injector.wiring import inject, Provide
 from typing import Callable, Coroutine, Any
 
+import app.cores.common_types as types
+from app.cores.utils import HEADERS, gen_id
 from app.cores.di_container import DiContainer
 from app.services import EmbeddingService
 import app.schemas.embedding_schema as schema
-import app.cores.common_types as types
 
 
-from ..cores.utils import gen_id
-
-
-router = APIRouter(prefix="/embeddings/documents")
+router = APIRouter(prefix="/embeddings/documents", dependencies=[HEADERS["AT"]])
 
 
 @router.post(

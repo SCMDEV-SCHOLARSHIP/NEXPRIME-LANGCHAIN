@@ -2,12 +2,13 @@ from fastapi import APIRouter, status, Depends
 from dependency_injector.wiring import inject, Provide
 from typing import Callable, Coroutine, Any
 
+from app.cores.utils import HEADERS
 import app.schemas.retrieval_schema as schema
 from app.cores.di_container import DiContainer
 from app.services import RetrievalService
 
 
-router = APIRouter(prefix="/retrieval")
+router = APIRouter(prefix="/retrieval", dependencies=[HEADERS["AT"]])
 
 
 @router.post("/", response_model=schema.RetrievalOutput, status_code=status.HTTP_200_OK)

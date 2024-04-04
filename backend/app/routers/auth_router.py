@@ -1,22 +1,23 @@
-from fastapi import APIRouter, status, Depends, Request, Security
-from fastapi.security import APIKeyHeader
+from fastapi import APIRouter, status, Depends, Request
 from dependency_injector.wiring import inject, Provide
 
 from app.cores.exceptions.error_code import ErrorCode
 from app.cores.exceptions.exceptions import UnauthorizedException
 
+from app.cores.utils import HEADERS
 from app.cores.di_container import DiContainer
 import app.schemas.auth_schema as schema
 from app.services.auth_service import AuthService
 
 
-router = APIRouter(prefix="/auth")
+router = APIRouter(prefix="/auth", dependencies=[HEADERS["AT"]])
 
 
 @router.post(
     "/refresh",
     response_model=schema.JWTTokenIssueResponse,
     status_code=status.HTTP_200_OK,
+    dependencies=[HEADERS["RT"]],
 )
 @inject
 async def issue_renewal_tokens(
