@@ -1,7 +1,6 @@
 import asyncio
 from pathlib import Path
 from abc import ABC
-from typing import TypeAlias, TypeVar, Any
 from dependency_injector.wiring import inject, Provide, Provider
 from dependency_injector.providers import Configuration
 
@@ -129,11 +128,6 @@ class RetrievalBuilder(VectorstoreBuilder):
             raise Exception("Value not found")
 
 
-# TODO: TypeVar 테스트
-# BuilderType: TypeAlias = DocumentBuilder | RetrievalBuilder # TypeVar 문제 발생 시 변경
-BuilderType = TypeVar("BuilderType", DocumentBuilder, RetrievalBuilder)
-
-
 class FeatureDirector(ABC): ...
 
 
@@ -145,7 +139,7 @@ class ServiceDirector(FeatureDirector):
         embedding_model_name: str,
         llm_model_name: str,
         alias: str = "base",
-        builder: BuilderType = Provide["_retrieval_builder"],
+        builder: RetrievalBuilder = Provide["_retrieval_builder"],
     ) -> RetrievalService:
         embedding = await builder.make_embedding(embedding_model_name)
         vectorstore, llm = await asyncio.gather(
@@ -164,7 +158,7 @@ class ServiceDirector(FeatureDirector):
         self,
         collection_name: str,
         embedding_model_name: str,
-        builder: BuilderType = Provide["_vectorstore_builder"],
+        builder: VectorstoreBuilder = Provide["_vectorstore_builder"],
     ) -> EmbeddingService:
         embedding = await builder.make_embedding(embedding_model_name)
         vectorstore = await builder.make_vectorstore(collection_name, embedding)
@@ -174,7 +168,7 @@ class ServiceDirector(FeatureDirector):
     async def build_collection_service(
         self,
         collection_name: str,
-        builder: BuilderType = Provide["_vectorstore_builder"],
+        builder: VectorstoreBuilder = Provide["_vectorstore_builder"],
     ) -> CollectionService:
         embedding = SDSEmbedding()
         vectorstore = await builder.make_vectorstore(collection_name, embedding)
@@ -187,7 +181,7 @@ class DocumentDirector(FeatureDirector):
         self,
         file_path: str,
         splitter_alias: str = "base",
-        builder: BuilderType = Provide["_document_builder"],
+        builder: DocumentBuilder = Provide["_document_builder"],
     ) -> list[types.Document]:
         loader, text_splitter = await asyncio.gather(
             builder.make_loader(file_path), builder.make_splitter(splitter_alias)

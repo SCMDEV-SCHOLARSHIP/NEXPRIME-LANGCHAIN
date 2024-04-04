@@ -6,4 +6,6 @@ from .retrieval_service import (
     BaseRetrievalService,
 )
 from .user_service import UserService
+from .auth_service import AuthService
+from .login_service import LoginService
 from .file_service import FileService

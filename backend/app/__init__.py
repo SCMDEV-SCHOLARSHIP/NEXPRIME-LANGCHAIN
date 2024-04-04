@@ -30,9 +30,10 @@ def create_app() -> FastAPI:
     app.include_router(router=routers.retrieval_apis, tags=["Retrieval"])
     app.include_router(router=routers.user_apis, tags=["User"])
     app.include_router(router=routers.file_apis, tags=["File"])
-    app.include_router(router=routers.auth_apis, tags=["Authentication"])
+    app.include_router(router=routers.auth_apis, tags=["Authentication(Token)"])
+    app.include_router(router=routers.login_apis, tags=["Login/Logout"])
 
-    token_validator = di_container.auth_service().validate_token
+    token_validator = di_container.auth_service().get_strategy("default").validate
 
     app.add_middleware(JWTAuthMiddleware, token_validator=token_validator)
     app.add_middleware(SQLAlchemyMiddleware)

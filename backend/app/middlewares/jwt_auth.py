@@ -16,8 +16,8 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
     def __init__(
         self,
         app: ASGIApp,
-        token_validator: Callable[[str], Coroutine[Any, Any, dict[str, Any]]],
-        excluded_paths: set[str] = {"/", "/openapi.json", "/auth/token", "/users/sign-up", "/auth/login"},
+        token_validator: Callable[[str], dict[str, Any]],
+        excluded_paths: set[str] = {"/", "/openapi.json", "/users/sign-up", "/login"},
         excluded_paths_regex: str = "^(/docs|/redoc)",
     ) -> None:
         super().__init__(app)
@@ -49,11 +49,12 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
                     UnauthorizedException("Header", ErrorCode.INVALID_FORMAT),
                 )
             token = credentials.credentials
-            if url_path == "/auth/renewal":
+            if url_path == "/auth/refresh":
                 request.state.access_token = token
             else:
                 try:
-                    await self.token_validator(token)
+                    payload = self.token_validator(token)
+                    request.state.payload = payload
                 # token_validator에 다른 exception 발생 시 추가할 것
                 except UnauthorizedException as e:
                     return await unauthorized_handler(request, e)
