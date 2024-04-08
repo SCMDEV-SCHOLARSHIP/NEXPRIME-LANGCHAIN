@@ -20,7 +20,7 @@ class UserCrud:
         self.session.add(user)
         return user
 
-    async def get_user(self, user_id: str) -> User:
+    async def get_user(self, user_id: str) -> User | None:
         query = select(User).where(User.user_id == user_id)
         result = await self.session.execute(query)
         return result.scalars().first()

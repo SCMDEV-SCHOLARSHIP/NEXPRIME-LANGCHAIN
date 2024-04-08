@@ -1,5 +1,5 @@
 from dependency_injector.containers import DeclarativeContainer
-from dependency_injector.providers import Configuration, Singleton, Callable
+from dependency_injector.providers import Configuration, Singleton, Callable, Aggregate
 
 from app.cores.constants import BasePath
 from app.cores.utils import as_posix
@@ -7,7 +7,13 @@ from app.cores.logger import LoggerMaker
 
 from app.services.user_service import UserService
 from app.services.file_service import FileService
-from app.services.auth_service import AuthService
+from app.services.auth_service import (
+    AuthService,
+    DefaultValidationStrategy,
+    IgnoreExpiredValidationStrategy,
+    ExpiredYetValidationStrategy,
+)
+from app.services.login_service import LoginService, FormBaseLoginStrategy
 
 from app.database.rdb.session import AsyncSessionManager
 from app.repository import UserCrud, JWTTokenCrud, FileCrud
@@ -51,9 +57,20 @@ class DiContainer(DeclarativeContainer):
     user_service = Singleton(UserService, user_crud=user_crud)
     file_service = Singleton(FileService, file_crud=file_crud, user_crud=user_crud)
     auth_service = Singleton(AuthService, token_crud=token_crud)
+    login_service = Singleton(LoginService)
 
     # (async) factories
     retrieval_service_factory = Callable(_service_director().build_retrieval_service)
     embedding_service_factory = Callable(_service_director().build_embedding_service)
     collection_service_factory = Callable(_service_director().build_collection_service)
     splitted_document_factory = Callable(_document_director().build_splitted_document)
+
+    # strategies
+    login_strategy = Aggregate(
+        form_base=Singleton(FormBaseLoginStrategy),
+    )
+    token_validation_strategy = Aggregate(
+        default=Singleton(DefaultValidationStrategy),
+        ignore_expired=Singleton(IgnoreExpiredValidationStrategy),
+        expired_yet=Singleton(ExpiredYetValidationStrategy),
+    )

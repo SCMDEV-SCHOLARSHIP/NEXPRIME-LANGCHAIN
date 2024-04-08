@@ -1,4 +1,4 @@
-from sqlalchemy import String, TIMESTAMP
+from sqlalchemy import String, TIMESTAMP, BOOLEAN
 from sqlalchemy.sql.schema import Column
 from datetime import datetime
 
@@ -14,3 +14,4 @@ class JWTToken(Base):
     create_user_id = Column(String, nullable=False, default=user_id)
     modified_datetime = Column(TIMESTAMP, nullable=False, default=datetime.now)
     modified_user_id = Column(String, nullable=False, default=user_id)
+    delete_yn = Column(BOOLEAN, default=False)

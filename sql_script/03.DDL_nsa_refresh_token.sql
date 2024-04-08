@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS nexprimescmmgr.nsa_refresh_token
     create_user_id character varying COLLATE pg_catalog."default" NOT NULL,
     modified_datetime timestamp with time zone NOT NULL,
     modified_user_id character varying COLLATE pg_catalog."default" NOT NULL,
+    delete_yn boolean NOT NULL,
     CONSTRAINT nsa_user_token_pkey PRIMARY KEY (user_id)
 )
 
