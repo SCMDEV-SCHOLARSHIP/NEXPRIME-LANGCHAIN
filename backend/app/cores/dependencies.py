@@ -113,6 +113,8 @@ class RetrievalBuilder(VectorstoreBuilder):
                 model=model_name,
                 temperature=0,
                 api_key=self.config.secrets.openai_api_key(),
+                streaming=True,
+                callbacks=[StreamingStdOutCallbackHandler()],
             )
         elif engine == "sds":
             return HuggingFaceTextGenInference(
@@ -123,6 +125,8 @@ class RetrievalBuilder(VectorstoreBuilder):
                 typical_p=0.95,
                 temperature=0.01,
                 repetition_penalty=1.03,
+                streaming=True,
+                callbacks=[StreamingStdOutCallbackHandler()],
             )
         else:
             raise Exception("Value not found")
