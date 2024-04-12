@@ -1,4 +1,5 @@
 from fastapi import APIRouter, status, Depends
+from fastapi.responses import StreamingResponse
 from dependency_injector.wiring import inject, Provide
 from typing import Callable, Coroutine, Any
 
@@ -35,3 +36,23 @@ async def retrieve_by_query(
         ],
     )
     return response
+
+
+@router.post(
+    "/chat-stream", response_class=StreamingResponse, status_code=status.HTTP_200_OK
+)
+@inject
+async def retrieve_streaming_by_query(
+    ret_req: schema.RetrievalInput,
+    service_factory: Callable[..., Coroutine[Any, Any, RetrievalService]] = Depends(
+        Provide[DiContainer.retrieval_service_factory.provider]
+    ),
+) -> StreamingResponse:
+    service = await service_factory(
+        collection_name=ret_req.collection,
+        embedding_model_name=ret_req.embedding_model,
+        llm_model_name=ret_req.llm_model,
+    )
+    return StreamingResponse(
+        service.stream(ret_req.query), media_type="text/event-stream"
+    )
