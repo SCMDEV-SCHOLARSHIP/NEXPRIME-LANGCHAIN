@@ -1,9 +1,10 @@
 from fastapi import APIRouter, status, Depends
+from fastapi.requests import Request
 from fastapi.responses import StreamingResponse
 from dependency_injector.wiring import inject, Provide
 from typing import Callable, Coroutine, Any
 
-from app.cores.utils import HEADERS
+from app.cores.utils import HEADERS, get_payload_info
 import app.schemas.retrieval_schema as schema
 from app.cores.di_container import DiContainer
 from app.services import RetrievalService
@@ -44,6 +45,7 @@ async def retrieve_by_query(
 @inject
 async def retrieve_streaming_by_query(
     ret_req: schema.RetrievalInput,
+    request: Request,
     service_factory: Callable[..., Coroutine[Any, Any, RetrievalService]] = Depends(
         Provide[DiContainer.retrieval_service_factory.provider]
     ),
@@ -53,6 +55,8 @@ async def retrieve_streaming_by_query(
         embedding_model_name=ret_req.embedding_model,
         llm_model_name=ret_req.llm_model,
     )
+    user_id: str = get_payload_info(request, "sub")
     return StreamingResponse(
-        service.stream(ret_req.query), media_type="text/event-stream"
+        service.stream(ret_req.query, user_id),
+        media_type="text/event-stream",
     )
