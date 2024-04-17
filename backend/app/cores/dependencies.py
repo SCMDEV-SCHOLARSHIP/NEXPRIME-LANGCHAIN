@@ -107,6 +107,9 @@ class DocumentBuilder(VectorstoreBuilder):
 
 class RetrievalBuilder(VectorstoreBuilder):
     async def make_llm(self, model_name: str) -> types.BaseLanguageModel:
+        stream_log: bool = self.config.base.stream_log()
+        callbacks = [StreamingStdOutCallbackHandler()] if stream_log else None
+
         engine = SupportedModels.LLM.get(model_name, None)
         if engine == "openai":
             return ChatOpenAI(
@@ -114,7 +117,7 @@ class RetrievalBuilder(VectorstoreBuilder):
                 temperature=0,
                 api_key=self.config.secrets.openai_api_key(),
                 streaming=True,
-                callbacks=[StreamingStdOutCallbackHandler()],
+                callbacks=callbacks,
             )
         elif engine == "sds":
             return HuggingFaceTextGenInference(
@@ -126,7 +129,7 @@ class RetrievalBuilder(VectorstoreBuilder):
                 temperature=0.01,
                 repetition_penalty=1.03,
                 streaming=True,
-                callbacks=[StreamingStdOutCallbackHandler()],
+                callbacks=callbacks,
             )
         else:
             raise Exception("Value not found")

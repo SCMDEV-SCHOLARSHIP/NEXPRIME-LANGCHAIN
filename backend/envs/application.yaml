@@ -4,6 +4,8 @@ base:
   port: 8000
   url: "localhost:8000"
   log_level: INFO
+  stream_log: False
+  langsmith_tracing: True
 
 db:
   url: ""
