@@ -5,7 +5,7 @@ from dependency_injector.wiring import inject, Provide
 from app.cores.exceptions import InvalidRequestException
 from app.cores.exceptions.error_code import ErrorCode
 
-from app.cores.utils import HEADERS
+from app.cores.utils import HEADERS, get_payload_info
 from app.cores.di_container import DiContainer
 import app.schemas.login_schema as schema
 import app.schemas.auth_schema as auth_schema
@@ -50,8 +50,7 @@ async def logout(
     request: Request,
     auth_service: AuthService = Depends(Provide[DiContainer.auth_service]),
 ) -> None:
-    payload: dict[str, Any] = request.state.payload
-    user_id: str = payload["sub"]
+    user_id: str = get_payload_info(request, "sub")
     if await auth_service.delete_token(user_id) == False:
         raise InvalidRequestException("user_id", ErrorCode.BAD_REQUEST)
     return
