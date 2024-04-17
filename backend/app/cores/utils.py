@@ -1,7 +1,13 @@
 from pathlib import Path
 import hashlib
+from typing import Any, overload
+
 from fastapi import Security
 from fastapi.security import APIKeyHeader
+from fastapi.requests import Request
+
+from app.cores.exceptions.exceptions import InternalServerException
+from app.cores.exceptions.error_code import ErrorCode
 
 
 def as_posix(*paths: str) -> str:
@@ -21,3 +27,22 @@ HEADERS = {
     "AT": Security(APIKeyHeader(name="Authorization", scheme_name="Access Token")),
     "RT": Security(APIKeyHeader(name="refresh_token", scheme_name="Refresh Token")),
 }
+
+
+@overload
+def get_payload_info(request: Request, key: None = None) -> dict[str, Any]: ...
+
+
+@overload
+def get_payload_info(request: Request, key: str) -> Any: ...
+
+
+def get_payload_info(request: Request, key: str | None = None) -> dict[str, Any] | Any:
+    payload: dict[str, Any] = request.state.payload
+    if key is None:
+        return payload
+    elif key not in payload:  # 코딩 에러
+        raise InternalServerException(
+            f"key '{key}' not in payload", ErrorCode.INTERNAL_SERVER_ERROR
+        )
+    return payload[key]
