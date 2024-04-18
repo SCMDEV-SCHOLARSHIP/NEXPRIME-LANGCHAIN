@@ -68,7 +68,8 @@ class BatchEmbeddingRequest(BaseModel, extra="forbid"):
     collection: str
     files: list[DocumentInfo]
     collection_recreate: bool = False
-
+    chunk_size: int
+    chunk_overlap: int
 
 class EmbeddingResponse(BaseModel, extra="forbid"):
     results: list[EmbeddingResultSchema]

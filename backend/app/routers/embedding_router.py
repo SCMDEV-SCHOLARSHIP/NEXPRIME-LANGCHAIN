@@ -8,7 +8,7 @@ from app.cores.utils import HEADERS, gen_id
 from app.cores.di_container import DiContainer
 from app.services import EmbeddingService
 import app.schemas.embedding_schema as schema
-
+from app.services.file_service import FileService
 
 router = APIRouter(prefix="/embeddings/documents", dependencies=[HEADERS["AT"]])
 
@@ -24,6 +24,7 @@ async def embed_new_documents(
     service_factory: Callable[..., Coroutine[Any, Any, EmbeddingService]] = Depends(
         Provide[DiContainer.embedding_service_factory.provider]
     ),
+    file_service: FileService = Depends(Provide[DiContainer.file_service]),
     splitted_doc_factory: Callable[
         ..., Coroutine[Any, Any, list[types.Document]]
     ] = Depends(Provide[DiContainer.splitted_document_factory.provider]),
@@ -34,8 +35,16 @@ async def embed_new_documents(
             embedding_model_name=emb_req.embedding_model,
         )
     )
+
+    saved_files = await asyncio.gather(
+        *[file_service.get_file({"uuid": [file.source]}) for file in emb_req.files]
+    )
+
     splitted_documents = await asyncio.gather(
-        *[splitted_doc_factory(file_path=file.source) for file in emb_req.files]
+        *[splitted_doc_factory(file_path=file.file_path,
+                               extension=file.file_extension,
+                               chunk_size=emb_req.chunk_size,
+                               chunk_overlap=emb_req.chunk_overlap) for file in saved_files]
     )
     service = await service_task
     results = await service.embed_docs(

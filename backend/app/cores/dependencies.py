@@ -71,8 +71,11 @@ class VectorstoreBuilder(FeatureBuilder):
 
 
 class DocumentBuilder(VectorstoreBuilder):
-    async def make_loader(self, file_path: str) -> types.BaseLoader:
-        ext = Path(file_path).suffix
+    async def make_loader(self, file_path: str, extension:str) -> types.BaseLoader:
+        ext = extension
+        if ext is None:
+            ext = Path(file_path).suffix
+
         if ext == ".txt":
             return TextLoader(file_path)
         elif ext == ".docx":
@@ -84,20 +87,20 @@ class DocumentBuilder(VectorstoreBuilder):
         else:
             raise Exception("Value not found")
 
-    async def make_splitter(self, alias: str = "base") -> types.TextSplitter:
+        async def make_splitter(self, alias: str = "base", chunk_size: int = 1000, chunk_overlap: int = 100) -> types.TextSplitter:
         if alias == "base":
             return RecursiveCharacterTextSplitter(
                 separators=["\n\n", "\n", " ", ""],  # default
-                chunk_size=1000,
-                chunk_overlap=200,
+                chunk_size=chunk_size,
+                chunk_overlap=chunk_overlap,
                 length_function=len,  # default
                 is_separator_regex=False,  # defalult
             )
         elif alias == "char":
             return CharacterTextSplitter(
                 separator="\n\n",
-                chunk_size=1000,
-                chunk_overlap=200,
+                chunk_size=chunk_size,
+                chunk_overlap=chunk_overlap,
                 length_function=len,
                 is_separator_regex=False,
             )

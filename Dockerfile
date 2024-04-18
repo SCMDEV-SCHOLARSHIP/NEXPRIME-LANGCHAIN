@@ -7,4 +7,6 @@ COPY ./backend /backend
 
 WORKDIR /
 
+RUN mkdir /nsa_files
+
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "80", "--app-dir", "/backend"]
