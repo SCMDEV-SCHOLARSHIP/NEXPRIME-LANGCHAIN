@@ -14,6 +14,12 @@ from app.services.auth_service import (
     ExpiredYetValidationStrategy,
 )
 from app.services.login_service import LoginService, FormBaseLoginStrategy
+from app.services.retrieval_service import (
+    NoMemoryStrategy,
+    BufferMemoryStrategy,
+    BufferWindowMemoryStrategy,
+    SummaryMemoryStrategy,
+)
 
 from app.database.rdb.session import AsyncSessionManager
 from app.repository import UserCrud, JWTTokenCrud, FileCrud
@@ -73,4 +79,10 @@ class DiContainer(DeclarativeContainer):
         default=Singleton(DefaultValidationStrategy),
         ignore_expired=Singleton(IgnoreExpiredValidationStrategy),
         expired_yet=Singleton(ExpiredYetValidationStrategy),
+    )
+    memory_strategy = Aggregate(
+        nothing=Singleton(NoMemoryStrategy),
+        buffer=Singleton(BufferMemoryStrategy),
+        buffer_window=Singleton(BufferWindowMemoryStrategy),
+        summary=Singleton(SummaryMemoryStrategy),
     )
