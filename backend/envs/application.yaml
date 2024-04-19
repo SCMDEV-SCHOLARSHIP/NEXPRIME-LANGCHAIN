@@ -5,7 +5,7 @@ base:
   url: "localhost:8000"
   log_level: INFO
   stream_log: False
-  langsmith_tracing: True
+  langsmith_tracing: False
 
 db:
   url: ""
