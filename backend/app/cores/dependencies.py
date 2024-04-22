@@ -71,7 +71,7 @@ class VectorstoreBuilder(FeatureBuilder):
 
 
 class DocumentBuilder(VectorstoreBuilder):
-    async def make_loader(self, file_path: str, extension:str) -> types.BaseLoader:
+    async def make_loader(self, file_path: str, extension: str | None = None) -> types.BaseLoader:
         ext = extension
         if ext is None:
             ext = Path(file_path).suffix
@@ -194,7 +194,7 @@ class DocumentDirector(FeatureDirector):
         builder: DocumentBuilder = Provide["_document_builder"],
     ) -> list[types.Document]:
         loader, text_splitter = await asyncio.gather(
-            builder.make_loader(file_path), builder.make_splitter(splitter_alias)
+            builder.make_loader(file_path, extension), builder.make_splitter(splitter_alias, chunk_size, chunk_overlap)
         )
         loaded_documents = loader.load()
         splitted_document = text_splitter.split_documents(loaded_documents)
