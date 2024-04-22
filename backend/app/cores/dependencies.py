@@ -69,8 +69,11 @@ class VectorstoreBuilder(FeatureBuilder):
 
 
 class DocumentBuilder(FeatureBuilder):
-    async def make_loader(self, file_path: str) -> types.BaseLoader:
-        ext = Path(file_path).suffix
+    async def make_loader(self, file_path: str, extension: str | None = None) -> types.BaseLoader:
+        ext = extension
+        if ext is None:
+            ext = Path(file_path).suffix
+
         if ext == ".txt":
             return TextLoader(file_path)
         elif ext == ".docx":
@@ -82,20 +85,20 @@ class DocumentBuilder(FeatureBuilder):
         else:
             raise Exception("Value not found")
 
-    async def make_splitter(self, alias: str = "base") -> types.TextSplitter:
+    async def make_splitter(self, alias: str = "base", chunk_size: int = 1000, chunk_overlap: int = 100) -> types.TextSplitter:
         if alias == "base":
             return RecursiveCharacterTextSplitter(
                 separators=["\n\n", "\n", " ", ""],  # default
-                chunk_size=1000,
-                chunk_overlap=200,
+                chunk_size=chunk_size,
+                chunk_overlap=chunk_overlap,
                 length_function=len,  # default
                 is_separator_regex=False,  # defalult
             )
         elif alias == "char":
             return CharacterTextSplitter(
                 separator="\n\n",
-                chunk_size=1000,
-                chunk_overlap=200,
+                chunk_size=chunk_size,
+                chunk_overlap=chunk_overlap,
                 length_function=len,
                 is_separator_regex=False,
             )
@@ -185,11 +188,14 @@ class DocumentDirector(FeatureDirector):
     async def build_splitted_document(
         self,
         file_path: str,
+        extension: str,
         splitter_alias: str = "base",
+        chunk_size: int = 1000,
+        chunk_overlap: int = 100,
         builder: DocumentBuilder = Provide["_document_builder"],
     ) -> list[types.Document]:
         loader, text_splitter = await asyncio.gather(
-            builder.make_loader(file_path), builder.make_splitter(splitter_alias)
+            builder.make_loader(file_path, extension), builder.make_splitter(splitter_alias, chunk_size, chunk_overlap)
         )
         loaded_documents = loader.load()
         splitted_document = text_splitter.split_documents(loaded_documents)

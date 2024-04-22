@@ -7,3 +7,6 @@ db:
 vectorstore:
   host: "70.50.180.90"
   url: "70.50.180.90:6333"
+
+file_archive:
+  path: "/nsa_files"
