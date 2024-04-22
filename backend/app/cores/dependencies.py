@@ -87,7 +87,7 @@ class DocumentBuilder(VectorstoreBuilder):
         else:
             raise Exception("Value not found")
 
-        async def make_splitter(self, alias: str = "base", chunk_size: int = 1000, chunk_overlap: int = 100) -> types.TextSplitter:
+    async def make_splitter(self, alias: str = "base", chunk_size: int = 1000, chunk_overlap: int = 100) -> types.TextSplitter:
         if alias == "base":
             return RecursiveCharacterTextSplitter(
                 separators=["\n\n", "\n", " ", ""],  # default
@@ -190,7 +190,10 @@ class DocumentDirector(FeatureDirector):
     async def build_splitted_document(
         self,
         file_path: str,
+        extension: str,
         splitter_alias: str = "base",
+        chunk_size: int = 1000,
+        chunk_overlap: int = 100,
         builder: DocumentBuilder = Provide["_document_builder"],
     ) -> list[types.Document]:
         loader, text_splitter = await asyncio.gather(
