@@ -37,15 +37,13 @@ from app.services import (
 )
 
 
-class FeatureBuilder(ABC): ...
-
-
-class VectorstoreBuilder(FeatureBuilder):
+class FeatureBuilder(ABC):
     @inject
     def __init__(self, config: Configuration = Provider["config"]) -> None:
         self.config = config
-        super().__init__()
 
+
+class VectorstoreBuilder(FeatureBuilder):
     async def make_vectorstore(
         self, collection_name: str, embedding_model: types.Embeddings
     ) -> types.VectorStore:
@@ -70,7 +68,7 @@ class VectorstoreBuilder(FeatureBuilder):
             raise Exception("Value not found")
 
 
-class DocumentBuilder(VectorstoreBuilder):
+class DocumentBuilder(FeatureBuilder):
     async def make_loader(self, file_path: str, extension: str | None = None) -> types.BaseLoader:
         ext = extension
         if ext is None:

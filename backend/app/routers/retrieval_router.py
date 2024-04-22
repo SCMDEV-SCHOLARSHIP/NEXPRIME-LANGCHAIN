@@ -57,6 +57,6 @@ async def retrieve_streaming_by_query(
     )
     user_id: str = get_payload_info(request, "sub")
     return StreamingResponse(
-        service.stream(ret_req.query, user_id),
+        service.stream(ret_req.query, user_id, "buffer_window"),
         media_type="text/event-stream",
     )

@@ -11,6 +11,7 @@ class LoggerMaker:
             logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
         )
         self.logger.addHandler(self.handler)
+        self.set_level()
 
     @inject
     def set_level(self, log_level: str = Provide["config.base.log_level"]) -> None:
