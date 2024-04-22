@@ -8,7 +8,7 @@ from app.cores.utils import HEADERS, gen_id
 from app.cores.di_container import DiContainer
 from app.services import EmbeddingService
 import app.schemas.embedding_schema as schema
-from app.services.file_service import FileService
+from app.services import FileService
 
 router = APIRouter(prefix="/embeddings/documents", dependencies=[HEADERS["AT"]])
 
