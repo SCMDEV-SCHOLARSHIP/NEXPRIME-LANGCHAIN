@@ -6,8 +6,9 @@ from typing import Callable, Coroutine, Any
 
 from app.cores.utils import HEADERS, get_payload_info
 import app.schemas.retrieval_schema as schema
+from app.schemas.message_schema import extract_identifiers
 from app.cores.di_container import DiContainer
-from app.services import RetrievalService
+from app.services import RetrievalService, MemoryHistoryService
 
 
 router = APIRouter(prefix="/retrieval", dependencies=[HEADERS["AT"]])
@@ -17,16 +18,29 @@ router = APIRouter(prefix="/retrieval", dependencies=[HEADERS["AT"]])
 @inject
 async def retrieve_by_query(
     ret_req: schema.RetrievalInput,
-    service_factory: Callable[..., Coroutine[Any, Any, RetrievalService]] = Depends(
-        Provide[DiContainer.retrieval_service_factory.provider]
+    request: Request,
+    history_service: MemoryHistoryService = Depends(
+        Provide[DiContainer.history_service]
     ),
+    retrieval_service_factory: Callable[
+        ..., Coroutine[Any, Any, RetrievalService]
+    ] = Depends(Provide[DiContainer.retrieval_service_factory.provider]),
 ) -> schema.RetrievalOutput:
-    service = await service_factory(
+    service = await retrieval_service_factory(
         collection_name=ret_req.collection,
         embedding_model_name=ret_req.embedding_model,
         llm_model_name=ret_req.llm_model,
     )
-    result = await service.retrieve(ret_req.query)
+    user_id: str = get_payload_info(request, "sub")
+    identifiers = extract_identifiers(ret_req.__dict__)
+
+    result = await service.retrieve(
+        ret_req.query,
+        history_service.get_session_history,
+        user_id=user_id,
+        **identifiers
+    )
+
     response = schema.RetrievalOutput(
         answer=result["answer"],
         sources=[
@@ -46,6 +60,9 @@ async def retrieve_by_query(
 async def retrieve_streaming_by_query(
     ret_req: schema.RetrievalInput,
     request: Request,
+    history_service: MemoryHistoryService = Depends(
+        Provide[DiContainer.history_service]
+    ),
     service_factory: Callable[..., Coroutine[Any, Any, RetrievalService]] = Depends(
         Provide[DiContainer.retrieval_service_factory.provider]
     ),
@@ -56,7 +73,14 @@ async def retrieve_streaming_by_query(
         llm_model_name=ret_req.llm_model,
     )
     user_id: str = get_payload_info(request, "sub")
+    identifiers = extract_identifiers(ret_req.__dict__)
+
     return StreamingResponse(
-        service.stream(ret_req.query, user_id, "buffer_window"),
+        service.stream(
+            ret_req.query,
+            history_service.get_session_history,
+            user_id=user_id,
+            **identifiers
+        ),
         media_type="text/event-stream",
     )

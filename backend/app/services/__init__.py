@@ -9,3 +9,4 @@ from .user_service import UserService
 from .auth_service import AuthService
 from .login_service import LoginService
 from .file_service import FileService
+from .history_service import MemoryHistoryService

@@ -7,15 +7,11 @@ from app.middlewares import SQLAlchemyMiddleware, JWTAuthMiddleware
 from app.cores.exceptions import EXC_HDLRs
 from app.cores.di_container import DiContainer
 
-# from app.cores.config import ConfigContianer
-
 
 def create_app() -> FastAPI:
     di_container = DiContainer()
-    # config_container = ConfigContianer()
 
     di_container.wire(packages=["app"])
-    # config_container.wire(packages=["app"])
 
     app = FastAPI(
         title=di_container.config.base.project_name(),
@@ -32,6 +28,7 @@ def create_app() -> FastAPI:
     app.include_router(router=routers.file_apis, tags=["File"])
     app.include_router(router=routers.auth_apis, tags=["Authentication(Token)"])
     app.include_router(router=routers.login_apis, tags=["Login/Logout"])
+    app.include_router(router=routers.history_apis, tags=["Chat Memory History"])
 
     token_validator = di_container.auth_service().get_strategy("default").validate
 

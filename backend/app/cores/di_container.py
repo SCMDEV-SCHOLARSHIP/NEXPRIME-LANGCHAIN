@@ -14,7 +14,8 @@ from app.services.auth_service import (
     ExpiredYetValidationStrategy,
 )
 from app.services.login_service import LoginService, FormBaseLoginStrategy
-from app.services.retrieval_service import (
+from app.services.history_service import (
+    MemoryHistoryService,
     NoMemoryStrategy,
     BufferMemoryStrategy,
     BufferWindowMemoryStrategy,
@@ -64,6 +65,7 @@ class DiContainer(DeclarativeContainer):
     file_service = Singleton(FileService, file_crud=file_crud, user_crud=user_crud)
     auth_service = Singleton(AuthService, token_crud=token_crud)
     login_service = Singleton(LoginService)
+    history_service = Singleton(MemoryHistoryService)
 
     # (async) factories
     retrieval_service_factory = Callable(_service_director().build_retrieval_service)
