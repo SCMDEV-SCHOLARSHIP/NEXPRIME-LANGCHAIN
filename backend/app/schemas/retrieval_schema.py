@@ -1,7 +1,9 @@
 from pydantic import BaseModel
 
+from app.schemas.message_schema import MessageIdentifierRequest
 
-class RetrievalInput(BaseModel, extra="forbid"):
+
+class RetrievalInput(MessageIdentifierRequest, extra="forbid"):
     query: str
     collection: str
     llm_model: str
