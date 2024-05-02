@@ -1,6 +1,6 @@
 from pathlib import Path
 import hashlib
-from typing import Any, overload
+from typing import Any, overload, Callable
 
 from fastapi import Security
 from fastapi.security import APIKeyHeader
@@ -46,3 +46,10 @@ def get_payload_info(request: Request, key: str | None = None) -> dict[str, Any]
             f"key '{key}' not in payload", ErrorCode.INTERNAL_SERVER_ERROR
         )
     return payload[key]
+
+
+def same_as(column_name: str) -> Callable:
+    def default_function(context):
+        return context.current_parameters.get(column_name)
+
+    return default_function

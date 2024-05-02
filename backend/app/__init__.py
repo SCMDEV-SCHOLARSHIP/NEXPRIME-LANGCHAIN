@@ -28,6 +28,7 @@ def create_app() -> FastAPI:
     app.include_router(router=routers.file_apis, tags=["File"])
     app.include_router(router=routers.auth_apis, tags=["Authentication(Token)"])
     app.include_router(router=routers.login_apis, tags=["Login/Logout"])
+    app.include_router(router=routers.message_apis, tags=["Chat DB Message"])
     app.include_router(router=routers.history_apis, tags=["Chat Memory History"])
 
     token_validator = di_container.auth_service().get_strategy("default").validate

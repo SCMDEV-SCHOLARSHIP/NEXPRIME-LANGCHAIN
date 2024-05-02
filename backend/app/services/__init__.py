@@ -9,4 +9,5 @@ from .user_service import UserService
 from .auth_service import AuthService
 from .login_service import LoginService
 from .file_service import FileService
+from .message_service import DBMessageService
 from .history_service import MemoryHistoryService
