@@ -5,4 +5,5 @@ from .user_router import router as user_apis
 from .file_router import router as file_apis
 from .auth_router import router as auth_apis
 from .login_router import router as login_apis
+from .message_router import router as message_apis
 from .history_router import router as history_apis

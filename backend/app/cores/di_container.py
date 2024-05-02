@@ -14,6 +14,7 @@ from app.services.auth_service import (
     ExpiredYetValidationStrategy,
 )
 from app.services.login_service import LoginService, FormBaseLoginStrategy
+from app.services.message_service import DBMessageService
 from app.services.history_service import (
     MemoryHistoryService,
     NoMemoryStrategy,
@@ -23,7 +24,7 @@ from app.services.history_service import (
 )
 
 from app.database.rdb.session import AsyncSessionManager
-from app.repository import UserCrud, JWTTokenCrud, FileCrud
+from app.repository import UserCrud, JWTTokenCrud, FileCrud, MessageHistoryCrud
 
 from app.cores.dependencies import (
     VectorstoreBuilder,
@@ -52,6 +53,7 @@ class DiContainer(DeclarativeContainer):
     user_crud = Singleton(UserCrud)
     file_crud = Singleton(FileCrud)
     token_crud = Singleton(JWTTokenCrud)
+    message_crud = Singleton(MessageHistoryCrud)
 
     # builders / directors
     _vectorstore_builder = Singleton(VectorstoreBuilder)
@@ -65,6 +67,7 @@ class DiContainer(DeclarativeContainer):
     file_service = Singleton(FileService, file_crud=file_crud, user_crud=user_crud)
     auth_service = Singleton(AuthService, token_crud=token_crud)
     login_service = Singleton(LoginService)
+    message_service = Singleton(DBMessageService, message_crud=message_crud)
     history_service = Singleton(MemoryHistoryService)
 
     # (async) factories
