@@ -3,6 +3,7 @@ from app.schemas.user_schema import UserDTO
 from dependency_injector.wiring import inject, Provide
 from app.cores.di_container import DiContainer
 from app.services.user_service import UserService
+from app.cores.utils import HEADERS
 
 router = APIRouter(prefix="/users")
 
@@ -28,6 +29,7 @@ async def create_user(
     response_model=list[UserDTO],
     status_code=status.HTTP_200_OK,
     summary="Get All Users",
+    dependencies=[HEADERS["AT"]]
 )
 @inject
 async def get_users(
