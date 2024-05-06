@@ -8,10 +8,9 @@ from app.cores.exceptions.error_code import ErrorCode
 from app.models.llm import Llm
 
 class LlmDTO(BaseModel, extra="forbid"):
-    llm_id: int
     llm_type: str
     llm_name: str
-    llm_url: Optional[str]
+    inference_server_url: Optional[str]
     max_new_tokens: Optional[int]
     top_k: Optional[int]
     top_p: Optional[float]
@@ -31,17 +30,17 @@ class LlmDTO(BaseModel, extra="forbid"):
             raise InvalidRequestException("llm_name", error_code=ErrorCode.NOT_EXIST)
         return value
     
-    @validator("llm_url")
+    @validator("inference_server_url")
     def validate_llm_url(cls, value):
         if not value or len(value) == 0:
-            raise InvalidRequestException("llm_url", error_code=ErrorCode.NOT_EXIST)
+            raise InvalidRequestException("inference_server_url", error_code=ErrorCode.NOT_EXIST)
         return value
     
 def convert_llm_to_llm_dto(llm: Llm|None) -> LlmDTO:
     if llm is None:
         return llm
     llm_dict: dict = llm.__dict__
-    del llm_dict["delete_yn"]
+    # del llm_dict["delete_yn"]
     del llm_dict["_sa_instance_state"]
     return LlmDTO(**llm_dict)
 

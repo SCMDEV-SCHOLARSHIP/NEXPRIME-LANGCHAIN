@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import async_scoped_session
 from dependency_injector.wiring import inject, Provide
 
@@ -13,6 +13,17 @@ class LlmCrud:
         query = await self.session.execute(select(Llm))
         return query.scalars().all()
 
-    # async def save(self, llm: Llm) -> Llm:
-    #     self.session.add(llm)
-    #     return await self.get_llm({"model_name": [llm.model_name]})
+    async def save(self, llm: Llm) -> Llm:
+        self.session.add(llm)
+        return llm
+    
+    async def get_llm(self, llm: Llm) -> Llm | None:
+        query = select(Llm).where(
+            and_(
+                Llm.llm_type == llm.llm_type,
+                Llm.llm_name == llm.llm_name,
+                Llm.create_user_id == llm.create_user_id
+            )
+        )
+        result = await self.session.execute(query)
+        return result.scalars().first()

@@ -6,7 +6,7 @@ from app.cores.di_container import DiContainer
 from app.schemas.llm_schema import LlmDTO
 from app.services import LlmService
 
-router = APIRouter(prefix="/LLM", dependencies=[HEADERS["AT"]])
+router = APIRouter(prefix="/llm", dependencies=[HEADERS["AT"]])
 
 @router.get(
     "/", 
@@ -21,3 +21,18 @@ async def get_llm_models(
     
     ret_llms = await llm_service.get_llms()
     return ret_llms
+
+@router.post(
+    "/register-llm",
+    response_model=LlmDTO,
+    status_code=status.HTTP_201_CREATED,
+    summary="Register LLM Model",
+)
+@inject
+async def create_llm_model(
+    llm_dto: LlmDTO,
+    llm_service: LlmService = Depends(Provide[DiContainer.llm_service]),
+) -> LlmDTO:
+    
+    ret_llm = await llm_service.create_llm(llm_dto)
+    return ret_llm
