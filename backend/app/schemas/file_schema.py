@@ -5,7 +5,7 @@ from datetime import datetime
 from app.cores.exceptions import InvalidRequestException
 from app.cores.exceptions.error_code import ErrorCode
 from platform import system
-import re
+# import re     # [SCMDEV-79] kevin delete
 
 class FileDTO(BaseModel, extra="forbid"):
     uuid: UUID4
@@ -20,22 +20,24 @@ class FileDTO(BaseModel, extra="forbid"):
     @validator("file_path")
     def validate_file_path(cls, value):
         if not value or len(value) == 0:
-            raise InvalidRequestException("file_path")
+            raise InvalidRequestException("file_path", error_code=ErrorCode.NOT_EXIST)
         
-        pattern = r'^[a-zA-Z]:\\(?:[\w\s\-_]+\\)*[\w\s\-_]+(?:\.\w+)?$' if system() == "Windows" else r'^\/(?:[\w\d\s_-]+\/)*[\w\d\s_-]+(?:\.\w+)?$'
-        if not re.match(pattern, value):
-            raise InvalidRequestException(
-                "file_path",
-                ErrorCode(
-                    code="KMG_ERR_I_001", message="file_path is not valid format"
-                ),
-            )
+        # [SCMDEV-79] kevin delete {
+        # pattern = r'^[a-zA-Z]:\\(?:[\w\s\-_]+\\)*[\w\s\-_]+(?:\.\w+)?$' if system() == "Windows" else r'^\/(?:[\w\d\s_-]+\/)*[\w\d\s_-]+(?:\.\w+)?$'
+        # if not re.match(pattern, value):
+        #     raise InvalidRequestException(
+        #         "file_path",
+        #         ErrorCode(
+        #             code="KMG_ERR_I_001", message="file_path is not valid format"
+        #         ),
+        #     )
+        # [SCMDEV-79] kevin delete }
         return value
     
     @validator("file_name")
     def validate_file_name(cls, value):
         if not value or len(value) == 0:
-            raise InvalidRequestException("file_name")
+            raise InvalidRequestException("file_name", error_code=ErrorCode.NOT_EXIST)
         return value
 
 def convert_file_to_file_dto(file: File|None) -> FileDTO:

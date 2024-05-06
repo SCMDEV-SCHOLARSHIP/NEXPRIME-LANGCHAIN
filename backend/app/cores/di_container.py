@@ -7,6 +7,7 @@ from app.cores.logger import LoggerMaker
 
 from app.services.user_service import UserService
 from app.services.file_service import FileService
+from app.services.llm_service import LlmService
 from app.services.auth_service import (
     AuthService,
     DefaultValidationStrategy,
@@ -24,7 +25,7 @@ from app.services.history_service import (
 )
 
 from app.database.rdb.session import AsyncSessionManager
-from app.repository import UserCrud, JWTTokenCrud, FileCrud, MessageHistoryCrud
+from app.repository import UserCrud, JWTTokenCrud, FileCrud, MessageHistoryCrud, LlmCrud
 
 from app.cores.dependencies import (
     VectorstoreBuilder,
@@ -54,6 +55,7 @@ class DiContainer(DeclarativeContainer):
     file_crud = Singleton(FileCrud)
     token_crud = Singleton(JWTTokenCrud)
     message_crud = Singleton(MessageHistoryCrud)
+    llm_crud = Singleton(LlmCrud)
 
     # builders / directors
     _vectorstore_builder = Singleton(VectorstoreBuilder)
@@ -69,6 +71,7 @@ class DiContainer(DeclarativeContainer):
     login_service = Singleton(LoginService)
     message_service = Singleton(DBMessageService, message_crud=message_crud)
     history_service = Singleton(MemoryHistoryService)
+    llm_service = Singleton(LlmService, llm_crud=llm_crud)
 
     # (async) factories
     retrieval_service_factory = Callable(_service_director().build_retrieval_service)
