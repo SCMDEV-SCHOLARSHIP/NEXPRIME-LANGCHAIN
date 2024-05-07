@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, validator
-from typing import Optional
+from typing import Optional, Literal
 from datetime import datetime
 
 from app.cores.exceptions import InvalidRequestException
@@ -8,21 +8,21 @@ from app.cores.exceptions.error_code import ErrorCode
 from app.models.llm import Llm
 
 class LlmDTO(BaseModel, extra="forbid"):
-    llm_type: str
+    llm_type: Literal["sds", "openai"]
     llm_name: str
-    inference_server_url: Optional[str]
+    inference_server_url: str | None = None
     max_new_tokens: Optional[int]
     top_k: Optional[int]
     top_p: Optional[float]
     typical_p: Optional[float]
     temperature: Optional[float]
     repetition_penalty: Optional[float]
-    api_key: Optional[str]
+    api_key: str | None = None
     streaming: Optional[bool]
-    create_datetime: Optional[datetime] = Field(default=None)
-    create_user_id: Optional[str] = Field(default=None)
-    modified_datetime: Optional[datetime] = Field(default=None)
-    modified_user_id: Optional[str] = Field(default=None)
+    create_datetime: datetime | None = None
+    create_user_id: str | None = None
+    modified_datetime: datetime | None = None
+    modified_user_id: str | None = None
 
     @validator("llm_name")
     def validate_llm_name(cls, value):
@@ -36,7 +36,7 @@ class LlmDTO(BaseModel, extra="forbid"):
             raise InvalidRequestException("inference_server_url", error_code=ErrorCode.NOT_EXIST)
         return value
     
-def convert_llm_to_llm_dto(llm: Llm|None) -> LlmDTO:
+def convert_llm_to_llm_dto(llm: Llm | None) -> LlmDTO | None:
     if llm is None:
         return llm
     llm_dict: dict = llm.__dict__
