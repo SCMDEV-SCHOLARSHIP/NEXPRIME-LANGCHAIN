@@ -40,8 +40,9 @@ def convert_llm_to_llm_dto(llm: Llm|None) -> LlmDTO:
     if llm is None:
         return llm
     llm_dict: dict = llm.__dict__
-    # del llm_dict["delete_yn"]
-    del llm_dict["_sa_instance_state"]
+    llm_dict.pop("llm_id", None)
+    llm_dict.pop("delete_yn", None)
+    llm_dict.pop("_sa_instance_state", None)
     return LlmDTO(**llm_dict)
 
 def convert_llm_dto_to_llm(llm_dto: LlmDTO) -> Llm:
