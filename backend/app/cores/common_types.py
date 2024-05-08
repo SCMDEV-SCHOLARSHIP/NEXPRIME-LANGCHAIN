@@ -1,4 +1,4 @@
-from typing import TypeAlias
+from typing import TypeAlias, Callable, Concatenate
 
 from langchain.document_loaders.base import BaseLoader
 from langchain.text_splitter import TextSplitter
@@ -12,6 +12,7 @@ from langchain_core.runnables import Runnable
 from langchain_core.prompts import BasePromptTemplate
 from langchain_core.runnables.utils import AddableDict
 from langchain_core.chat_history import BaseChatMessageHistory
+from langchain_core.callbacks import BaseCallbackHandler
 
 from qdrant_client import QdrantClient
 import qdrant_client.http.models as qtypes
@@ -19,3 +20,5 @@ import qdrant_client.http.models as qtypes
 Record: TypeAlias = qtypes.Record
 Client: TypeAlias = QdrantClient
 ExtendedId: TypeAlias = qtypes.ExtendedPointId
+
+TokenEncoder: TypeAlias = Callable[Concatenate[str, ...], list[int]]
