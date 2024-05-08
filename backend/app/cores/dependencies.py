@@ -1,8 +1,11 @@
 import asyncio
 from pathlib import Path
 from abc import ABC
+
 from dependency_injector.wiring import inject, Provide, Provider
 from dependency_injector.providers import Configuration
+import tiktoken
+from transformers import AutoTokenizer
 
 from langchain.document_loaders.word_document import Docx2txtLoader
 from langchain.document_loaders.text import TextLoader
@@ -16,14 +19,19 @@ from langchain.text_splitter import (
 
 from langchain.embeddings.openai import OpenAIEmbeddings
 from app.models.sds_embeddings import SDSEmbedding
+
+from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+from app.models.callbacks import TokenMetricsCallbackHandler
+
+from langchain_openai import ChatOpenAI
 from langchain_community.llms.huggingface_text_gen_inference import (
     HuggingFaceTextGenInference,
 )
-from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
-
-from langchain_openai import ChatOpenAI
 
 from app.database import ExtendedQdrant
+
+from app.cores.exceptions.exceptions import InvalidRequestException
+from app.cores.exceptions.error_code import ErrorCode
 
 import app.cores.common_types as types
 from app.cores.constants import SupportedModels, SupportedVectorStores
@@ -69,7 +77,9 @@ class VectorstoreBuilder(FeatureBuilder):
 
 
 class DocumentBuilder(FeatureBuilder):
-    async def make_loader(self, file_path: str, extension: str | None = None) -> types.BaseLoader:
+    async def make_loader(
+        self, file_path: str, extension: str | None = None
+    ) -> types.BaseLoader:
         ext = extension
         if ext is None:
             ext = Path(file_path).suffix
@@ -85,7 +95,9 @@ class DocumentBuilder(FeatureBuilder):
         else:
             raise Exception("Value not found")
 
-    async def make_splitter(self, alias: str = "base", chunk_size: int = 1000, chunk_overlap: int = 100) -> types.TextSplitter:
+    async def make_splitter(
+        self, alias: str = "base", chunk_size: int = 1000, chunk_overlap: int = 100
+    ) -> types.TextSplitter:
         if alias == "base":
             return RecursiveCharacterTextSplitter(
                 separators=["\n\n", "\n", " ", ""],  # default
@@ -108,9 +120,7 @@ class DocumentBuilder(FeatureBuilder):
 
 class RetrievalBuilder(VectorstoreBuilder):
     async def make_llm(self, model_name: str) -> types.BaseLanguageModel:
-        stream_log: bool = self.config.base.stream_log()
-        callbacks = [StreamingStdOutCallbackHandler()] if stream_log else None
-
+        callbacks = self.make_callbacks()
         engine = SupportedModels.LLM.get(model_name, None)
         if engine == "openai":
             return ChatOpenAI(
@@ -133,7 +143,30 @@ class RetrievalBuilder(VectorstoreBuilder):
                 callbacks=callbacks,
             )
         else:
-            raise Exception("Value not found")
+            raise InvalidRequestException("llm model", ErrorCode.NOT_EXIST)
+
+    def make_callbacks(self) -> list[types.BaseCallbackHandler]:
+        callbacks: list[types.BaseCallbackHandler] = []
+        stream_log: bool = self.config.base.stream_log()
+        if stream_log:
+            callbacks.append(StreamingStdOutCallbackHandler())
+        token_usage_log: bool = self.config.base.token_usage_log()
+        if token_usage_log:
+            callbacks.append(TokenMetricsCallbackHandler())
+        return callbacks
+
+
+class TokenEncoderBuilder(FeatureBuilder):
+    def make_token_encoder(self, model_name: str) -> types.TokenEncoder:
+        engine = SupportedModels.LLM.get(model_name, None)
+        if engine == "openai":
+            tokenizer = tiktoken.encoding_for_model(model_name)
+            return tokenizer.encode
+        elif engine == "sds":  # TODO: 테스트 필요
+            tokenizer = AutoTokenizer.from_pretrained(model_name)
+            return tokenizer.encode
+        else:
+            raise InvalidRequestException("tokenizer model", ErrorCode.NOT_EXIST)
 
 
 class FeatureDirector(ABC): ...
@@ -147,7 +180,7 @@ class ServiceDirector(FeatureDirector):
         embedding_model_name: str,
         llm_model_name: str,
         alias: str = "base",
-        builder: RetrievalBuilder = Provide["_retrieval_builder"],
+        builder: RetrievalBuilder = Provide["retrieval_builder"],
     ) -> RetrievalService:
         embedding = await builder.make_embedding(embedding_model_name)
         vectorstore, llm = await asyncio.gather(
@@ -166,7 +199,7 @@ class ServiceDirector(FeatureDirector):
         self,
         collection_name: str,
         embedding_model_name: str,
-        builder: VectorstoreBuilder = Provide["_vectorstore_builder"],
+        builder: VectorstoreBuilder = Provide["vectorstore_builder"],
     ) -> EmbeddingService:
         embedding = await builder.make_embedding(embedding_model_name)
         vectorstore = await builder.make_vectorstore(collection_name, embedding)
@@ -176,7 +209,7 @@ class ServiceDirector(FeatureDirector):
     async def build_collection_service(
         self,
         collection_name: str,
-        builder: VectorstoreBuilder = Provide["_vectorstore_builder"],
+        builder: VectorstoreBuilder = Provide["vectorstore_builder"],
     ) -> CollectionService:
         embedding = SDSEmbedding()
         vectorstore = await builder.make_vectorstore(collection_name, embedding)
@@ -192,10 +225,11 @@ class DocumentDirector(FeatureDirector):
         splitter_alias: str = "base",
         chunk_size: int = 1000,
         chunk_overlap: int = 100,
-        builder: DocumentBuilder = Provide["_document_builder"],
+        builder: DocumentBuilder = Provide["document_builder"],
     ) -> list[types.Document]:
         loader, text_splitter = await asyncio.gather(
-            builder.make_loader(file_path, extension), builder.make_splitter(splitter_alias, chunk_size, chunk_overlap)
+            builder.make_loader(file_path, extension),
+            builder.make_splitter(splitter_alias, chunk_size, chunk_overlap),
         )
         loaded_documents = loader.load()
         splitted_document = text_splitter.split_documents(loaded_documents)
