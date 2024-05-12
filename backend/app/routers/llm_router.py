@@ -56,5 +56,5 @@ async def delete_llm_model(
 ) -> LlmDTO:
     
     user_id: str = get_payload_info(request, "sub")
-    deleted_llm = await llm_service.delete_llm(user_id, llm_type, llm_name)
+    deleted_llm = await llm_service.delete_llm(user_id, llm_name, llm_type)
     return deleted_llm

@@ -27,12 +27,12 @@ class LlmCrud:
         self.session.add(llm)
         return llm
     
-    async def get_llm(self, user_id: str, llm_type: str, llm_name: str, deleted: bool = False) -> Llm | None:
+    async def get_llm(self, user_id: str, llm_name: str, llm_type: str, deleted: bool = False) -> Llm | None:
         query = select(Llm).where(
             and_(
                 Llm.create_user_id == user_id,
-                Llm.llm_type == llm_type,
                 Llm.llm_name == llm_name,
+                Llm.llm_type == llm_type,
             )
         )
         if not deleted: # TODO : delete에 대한 공통 logic 구현 필요
@@ -44,8 +44,8 @@ class LlmCrud:
         query = update(Llm).where(
             and_(
                 Llm.create_user_id == user_id,
-                Llm.llm_type == llm.llm_type,
                 Llm.llm_name == llm.llm_name,
+                Llm.llm_type == llm.llm_type,
             )
         ).values({Llm.delete_yn : True})
         await self.session.execute(query)

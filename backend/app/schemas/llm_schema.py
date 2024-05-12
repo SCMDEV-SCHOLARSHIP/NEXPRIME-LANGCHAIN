@@ -1,14 +1,15 @@
-from pydantic import BaseModel, Field, validator
-from typing import Optional, Literal
+from pydantic import BaseModel, model_validator
+from typing import Optional, Any
 from datetime import datetime
 
+from app.cores.constants import SupportedModels
 from app.cores.exceptions import InvalidRequestException
 from app.cores.exceptions.error_code import ErrorCode
 
 from app.models.llm import Llm
 
 class LlmDTO(BaseModel, extra="forbid"):
-    llm_type: Literal["sds", "openai"]
+    llm_type: str
     llm_name: str
     inference_server_url: str | None = None
     max_new_tokens: Optional[int]
@@ -24,17 +25,20 @@ class LlmDTO(BaseModel, extra="forbid"):
     modified_datetime: datetime | None = None
     modified_user_id: str | None = None
 
-    @validator("llm_name")
-    def validate_llm_name(cls, value):
-        if not value or len(value) == 0:
-            raise InvalidRequestException("llm_name", error_code=ErrorCode.NOT_EXIST)
-        return value
-    
-    @validator("inference_server_url")
-    def validate_llm_url(cls, value):
-        if not value or len(value) == 0:
-            raise InvalidRequestException("inference_server_url", error_code=ErrorCode.NOT_EXIST)
-        return value
+    @model_validator(mode="before")
+    def validate_llm_name(self, data: Any):
+        if isinstance(data, dict):
+            llm_name = data.get("llm_name")
+            llm_type = data.get("llm_type")
+            
+            if not llm_name or len(llm_name) == 0:
+                raise InvalidRequestException("llm_name", error_code=ErrorCode.NOT_EXIST)
+            supported_type = SupportedModels.LLM.get(llm_name, None)
+            if supported_type is None:
+                raise InvalidRequestException("llm_name", error_code=ErrorCode.BAD_REQUEST)
+            elif supported_type != llm_type:
+                raise InvalidRequestException("llm_type", error_code=ErrorCode.BAD_REQUEST)
+        return self
     
 def convert_llm_to_llm_dto(llm: Llm | None) -> LlmDTO | None:
     if llm is None:

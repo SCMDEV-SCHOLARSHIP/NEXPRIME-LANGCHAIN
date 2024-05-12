@@ -7,6 +7,7 @@ from app.schemas.llm_schema import (
 )
 from app.repository import LlmCrud
 from app.database.rdb import Transactional, Propagation
+from app.cores.constants import SupportedModels
 from app.cores.exceptions.exceptions import InvalidRequestException
 from app.cores.exceptions.error_code import ErrorCode
 import bcrypt
@@ -18,11 +19,11 @@ class LlmService:
     
     @Transactional(propagation=Propagation.REQUIRED)
     async def create_llm(self, user_id: str, llm_dto: LlmDTO) -> LlmDTO:        
-        if (await self.llm_crud.get_llm(user_id, llm_dto.llm_type, llm_dto.llm_name) is not None):
+        if (await self.llm_crud.get_llm(user_id, llm_dto.llm_name, llm_dto.llm_type) is not None):
             raise InvalidRequestException("llm_name", error_code=ErrorCode.DUPLICATED_VALUE)
+        elif llm_dto.llm_type != SupportedModels.LLM.get(llm_dto.llm_name, None):
+            raise InvalidRequestException("llm_type", error_code=ErrorCode.NOT_EXIST)
         
-        if llm_dto.api_key:
-            llm_dto.api_key = bcrypt.hashpw(llm_dto.api_key.encode(), bcrypt.gensalt()).decode("utf-8")        
         llm_dto.create_user_id = llm_dto.modified_user_id = user_id
 
         llm = convert_llm_dto_to_llm(llm_dto)
@@ -36,12 +37,20 @@ class LlmService:
             llms = await self.llm_crud.get_user_llms(user_id)
         return [convert_llm_to_llm_dto(llm) for llm in llms]
     
+    async def get_llm(self, user_id: str, llm_name: str) -> LlmDTO:
+        llm_type = SupportedModels.LLM.get(llm_name, None)
+
+        if llm_type is None:
+            raise InvalidRequestException("llm_model", error_code=ErrorCode.NOT_EXIST)
+
+        llm = await self.llm_crud.get_llm(user_id, llm_name, llm_type, deleted=False)
+        return convert_llm_to_llm_dto(llm)
+    
     @Transactional(propagation=Propagation.REQUIRED)
-    async def delete_llm(self, user_id: str, llm_type: str, llm_name: str) -> LlmDTO:
-        delete_llm = await self.llm_crud.get_llm(user_id, llm_type, llm_name, deleted=False)
+    async def delete_llm(self, user_id: str, llm_name: str, llm_type: str) -> LlmDTO:
+        delete_llm = await self.llm_crud.get_llm(user_id, llm_name, llm_type, deleted=False)
 
         await self.llm_crud.delete_llm(user_id, delete_llm)
 
         deleted_llm_DTO = convert_llm_to_llm_dto(delete_llm) if delete_llm else None
-
         return deleted_llm_DTO

@@ -26,12 +26,13 @@ async def retrieve_by_query(
         ..., Coroutine[Any, Any, RetrievalService]
     ] = Depends(Provide[DiContainer.retrieval_service_factory.provider]),
 ) -> schema.RetrievalOutput:
+    user_id: str = get_payload_info(request, "sub")
     service = await retrieval_service_factory(
+        user_id=user_id,
         collection_name=ret_req.collection,
         embedding_model_name=ret_req.embedding_model,
         llm_model_name=ret_req.llm_model,
     )
-    user_id: str = get_payload_info(request, "sub")
     identifiers = extract_identifiers(ret_req.__dict__)
 
     result = await service.retrieve(
@@ -67,12 +68,13 @@ async def retrieve_streaming_by_query(
         Provide[DiContainer.retrieval_service_factory.provider]
     ),
 ) -> StreamingResponse:
+    user_id: str = get_payload_info(request, "sub")
     service = await service_factory(
+        user_id=user_id,
         collection_name=ret_req.collection,
         embedding_model_name=ret_req.embedding_model,
         llm_model_name=ret_req.llm_model,
     )
-    user_id: str = get_payload_info(request, "sub")
     identifiers = extract_identifiers(ret_req.__dict__)
 
     return StreamingResponse(
