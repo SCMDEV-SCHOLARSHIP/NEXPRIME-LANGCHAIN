@@ -35,6 +35,8 @@ from app.cores.exceptions.error_code import ErrorCode
 
 import app.cores.common_types as types
 from app.cores.constants import SupportedModels, SupportedVectorStores
+from app.cores.exceptions.exceptions import InvalidRequestException
+from app.cores.exceptions.error_code import ErrorCode
 
 from app.services import (
     RetrievalService,
@@ -42,7 +44,10 @@ from app.services import (
     BaseRetrievalService,
     EmbeddingService,
     CollectionService,
+    LlmService,
 )
+
+from app.schemas.llm_schema import LlmDTO
 
 
 class FeatureBuilder(ABC):
@@ -119,27 +124,30 @@ class DocumentBuilder(FeatureBuilder):
 
 
 class RetrievalBuilder(VectorstoreBuilder):
-    async def make_llm(self, model_name: str) -> types.BaseLanguageModel:
+    async def make_llm(self, llmDTO: LlmDTO) -> types.BaseLanguageModel:
         callbacks = self.make_callbacks()
-        engine = SupportedModels.LLM.get(model_name, None)
-        if engine == "openai":
+
+        if llmDTO is None:
+            raise InvalidRequestException("model_name", error_code=ErrorCode.NOT_EXIST)
+
+        if llmDTO.llm_type == "openai":
             return ChatOpenAI(
-                model=model_name,
-                temperature=0,
-                api_key=self.config.secrets.openai_api_key(),
-                streaming=True,
+                model=llmDTO.llm_name,
+                temperature=llmDTO.temperature,
+                api_key=llmDTO.api_key,
+                streaming=llmDTO.streaming,
                 callbacks=callbacks,
             )
-        elif engine == "sds":
+        elif llmDTO.llm_type == "sds":
             return HuggingFaceTextGenInference(
-                inference_server_url=self.config.secrets.sds.llama_url(),
-                max_new_tokens=512,
-                top_k=10,
-                top_p=0.95,
-                typical_p=0.95,
-                temperature=0.01,
-                repetition_penalty=1.03,
-                streaming=True,
+                inference_server_url=llmDTO.inference_server_url,
+                max_new_tokens=llmDTO.max_new_tokens,
+                top_k=llmDTO.top_k,
+                top_p=llmDTO.top_p,
+                typical_p=llmDTO.typical_p,
+                temperature=llmDTO.temperature,
+                repetition_penalty=llmDTO.repetition_penalty,
+                streaming=llmDTO.streaming,
                 callbacks=callbacks,
             )
         else:
@@ -176,16 +184,21 @@ class ServiceDirector(FeatureDirector):
     @inject
     async def build_retrieval_service(
         self,
+        user_id: str,
         collection_name: str,
         embedding_model_name: str,
         llm_model_name: str,
         alias: str = "base",
         builder: RetrievalBuilder = Provide["retrieval_builder"],
+        llm_service: LlmService = Provide["llm_service"],
     ) -> RetrievalService:
-        embedding = await builder.make_embedding(embedding_model_name)
+        embedding, llmDTO = await asyncio.gather(
+            builder.make_embedding(embedding_model_name),
+            llm_service.get_llm(user_id, llm_model_name),
+        )
         vectorstore, llm = await asyncio.gather(
             builder.make_vectorstore(collection_name, embedding),
-            builder.make_llm(llm_model_name),
+            builder.make_llm(llmDTO),
         )
         if alias == "openai-test":
             return OpenAIRetrievalService(vectorstore=vectorstore, llm=llm)

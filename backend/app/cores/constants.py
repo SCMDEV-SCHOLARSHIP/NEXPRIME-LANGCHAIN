@@ -30,7 +30,12 @@ class SupportedModels:
         "text-embedding-3-large": "openai",
         "sds-embed": "sds",
     }
-    LLM: dict[str, str] = {"gpt-3.5-turbo": "openai", "sds-llama": "sds"}
+    LLM: dict[str, str] = {
+        "gpt-3.5-turbo": "openai",
+        "sds-llama-2-70b-ko-instruct": "sds",
+        "mixtral-8x7b-instruct": "sds",
+        "ai-core-lite-10.9b-4k": "sds",
+    }
 
 
 class SupportedVectorStores(ExtendedStrEnum):

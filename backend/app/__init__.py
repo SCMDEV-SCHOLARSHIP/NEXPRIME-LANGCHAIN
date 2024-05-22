@@ -30,6 +30,7 @@ def create_app() -> FastAPI:
     app.include_router(router=routers.login_apis, tags=["Login/Logout"])
     app.include_router(router=routers.message_apis, tags=["Chat DB Message"])
     app.include_router(router=routers.history_apis, tags=["Chat Memory History"])
+    app.include_router(router=routers.llm_apis, tags=["LLM"])
 
     token_validator = di_container.auth_service().get_strategy("default").validate
 
