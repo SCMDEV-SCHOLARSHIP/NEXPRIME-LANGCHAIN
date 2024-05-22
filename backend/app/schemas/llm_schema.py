@@ -16,10 +16,10 @@ class LlmDTO(BaseModel, extra="forbid"):
     top_k: Optional[int]
     top_p: Optional[float]
     typical_p: Optional[float]
-    temperature: Optional[float]
+    temperature: float = 0.01
     repetition_penalty: Optional[float]
     api_key: str | None = None
-    streaming: Optional[bool]
+    streaming: bool = False
     create_datetime: datetime | None = None
     create_user_id: str | None = None
     modified_datetime: datetime | None = None
