@@ -5,6 +5,7 @@ base:
   url: "localhost:8000"
   log_level: INFO
   stream_log: False
+  token_usage_log: False
   langsmith_tracing: False
 
 db:

@@ -31,6 +31,7 @@ from app.cores.dependencies import (
     VectorstoreBuilder,
     DocumentBuilder,
     RetrievalBuilder,
+    TokenEncoderBuilder,
     ServiceDirector,
     DocumentDirector,
 )
@@ -58,11 +59,12 @@ class DiContainer(DeclarativeContainer):
     llm_crud = Singleton(LlmCrud)
 
     # builders / directors
-    _vectorstore_builder = Singleton(VectorstoreBuilder)
-    _retrieval_builder = Singleton(RetrievalBuilder)
-    _document_builder = Singleton(DocumentBuilder)
-    _service_director = Singleton(ServiceDirector)
-    _document_director = Singleton(DocumentDirector)
+    vectorstore_builder = Singleton(VectorstoreBuilder)
+    retrieval_builder = Singleton(RetrievalBuilder)
+    document_builder = Singleton(DocumentBuilder)
+    encoder_builder = Singleton(TokenEncoderBuilder)
+    service_director = Singleton(ServiceDirector)
+    document_director = Singleton(DocumentDirector)
 
     # services
     user_service = Singleton(UserService, user_crud=user_crud)
@@ -74,10 +76,10 @@ class DiContainer(DeclarativeContainer):
     llm_service = Singleton(LlmService, llm_crud=llm_crud)
 
     # (async) factories
-    retrieval_service_factory = Callable(_service_director().build_retrieval_service)
-    embedding_service_factory = Callable(_service_director().build_embedding_service)
-    collection_service_factory = Callable(_service_director().build_collection_service)
-    splitted_document_factory = Callable(_document_director().build_splitted_document)
+    retrieval_service_factory = Callable(service_director().build_retrieval_service)
+    embedding_service_factory = Callable(service_director().build_embedding_service)
+    collection_service_factory = Callable(service_director().build_collection_service)
+    splitted_document_factory = Callable(document_director().build_splitted_document)
 
     # strategies
     login_strategy = Aggregate(
@@ -94,3 +96,6 @@ class DiContainer(DeclarativeContainer):
         buffer_window=Singleton(BufferWindowMemoryStrategy),
         summary=Singleton(SummaryMemoryStrategy),
     )
+
+    # Misc
+    token_encoder_factory = Callable(encoder_builder().make_token_encoder)

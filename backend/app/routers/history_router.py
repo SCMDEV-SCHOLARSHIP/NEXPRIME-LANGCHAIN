@@ -2,8 +2,7 @@ from fastapi import APIRouter, status, Depends, Request
 from dependency_injector.wiring import inject, Provide
 
 from app.cores.utils import HEADERS, get_payload_info
-from app.cores.di_container import RetrievalBuilder
-from app.cores.di_container import DiContainer
+from app.cores.di_container import DiContainer, RetrievalBuilder
 
 import app.schemas.history_schema as schema
 import app.schemas.message_schema as msg_schema
@@ -38,7 +37,7 @@ async def reconstruct_history(
     history_service: MemoryHistoryService = Depends(
         Provide[DiContainer.history_service]
     ),
-    llm_builder: RetrievalBuilder = Depends(Provide[DiContainer._retrieval_builder]),
+    llm_builder: RetrievalBuilder = Depends(Provide[DiContainer.retrieval_builder]),
 ) -> None:
     user_id: str = get_payload_info(request, "sub")
     memory_type = memory_req.memory_type
