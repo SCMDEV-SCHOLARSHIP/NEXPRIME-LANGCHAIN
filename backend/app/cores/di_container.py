@@ -4,6 +4,7 @@ from dependency_injector.providers import Configuration, Singleton, Callable, Ag
 from app.cores.constants import BasePath
 from app.cores.utils import as_posix
 from app.cores.logger import LoggerMaker
+from app.services import CollectionService
 
 from app.services.user_service import UserService
 from app.services.file_service import FileService
@@ -42,7 +43,7 @@ class DiContainer(DeclarativeContainer):
     config = Configuration(
         yaml_files=[
             as_posix(BasePath.ENVS, "application.yaml"),
-            as_posix(BasePath.ENVS, "local.yaml"),
+            as_posix(BasePath.ENVS, "dev.yaml"),
             as_posix(BasePath.SECRETS, "secret.yaml"),
         ],
     )
@@ -74,11 +75,11 @@ class DiContainer(DeclarativeContainer):
     message_service = Singleton(DBMessageService, message_crud=message_crud)
     history_service = Singleton(MemoryHistoryService)
     llm_service = Singleton(LlmService, llm_crud=llm_crud)
+    collection_service = Singleton(CollectionService)
 
     # (async) factories
     retrieval_service_factory = Callable(service_director().build_retrieval_service)
     embedding_service_factory = Callable(service_director().build_embedding_service)
-    collection_service_factory = Callable(service_director().build_collection_service)
     splitted_document_factory = Callable(document_director().build_splitted_document)
 
     # strategies

@@ -6,6 +6,8 @@ from app.cores.di_container import DiContainer, RetrievalBuilder
 
 import app.schemas.history_schema as schema
 import app.schemas.message_schema as msg_schema
+from app.schemas.llm_schema import LlmDTO
+from app.services import LlmService
 from app.services.history_service import MemoryHistoryService
 
 
@@ -38,10 +40,18 @@ async def reconstruct_history(
         Provide[DiContainer.history_service]
     ),
     llm_builder: RetrievalBuilder = Depends(Provide[DiContainer.retrieval_builder]),
+    llm_service: LlmService = Depends(
+        Provide[DiContainer.llm_service]
+    )
 ) -> None:
     user_id: str = get_payload_info(request, "sub")
     memory_type = memory_req.memory_type
-    llm = await llm_builder.make_llm(memory_req.llm_model)
+    if memory_req.llm_model == "open-ai":
+        llm_dto = LlmDTO()
+        llm_dto.llm_type = "open-ai"
+    else:
+        llm_dto = await llm_service.get_llm(user_id, memory_req.llm_model)
+    llm = await llm_builder.make_llm(llm_dto)
     identifiers = msg_schema.extract_identifiers(memory_req.__dict__)
     await history_service.reconstruct(
         memory_type, llm, memory_req.cut_off, user_id=user_id, **identifiers

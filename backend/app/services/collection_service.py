@@ -1,18 +1,15 @@
-import app.cores.common_types as types
+from dependency_injector.wiring import Provide
+from qdrant_client import AsyncQdrantClient
+
+from app.schemas.collection_schema import CollectionResponseDTO
 
 
 class CollectionService:
-    def __init__(self, vectorstore: types.VectorStore) -> None:
-        self.vectorstore = vectorstore
 
-    async def get_doc(self, doc_id: int) -> list[types.Record]:
-        results = await self.vectorstore.aget_records(doc_id)  # ExtendedQdrant에만 있음
-        results.sort(
-            key=lambda rec: rec.payload["metadata"]["split_number"]
-        )  # just sorting
-        return results
+    def __init__(self, url: str = Provide["config.vectorstore.url"]) -> None:
+        self.qdrant_client = AsyncQdrantClient(url)
 
-    async def delete_doc(self, doc_id: int) -> None:
-        point_ids = [rec.id for rec in await self.get_doc(doc_id)]
-        await self.vectorstore.adelete(point_ids)
-        return
+    async def get_collections(self) -> list[CollectionResponseDTO]:
+        results = await self.qdrant_client.get_collections()
+        collections = [CollectionResponseDTO(collection_name=collection_description.name) for collection_description in results.collections]
+        return collections
