@@ -216,17 +216,7 @@ class ServiceDirector(FeatureDirector):
     ) -> EmbeddingService:
         embedding = await builder.make_embedding(embedding_model_name)
         vectorstore = await builder.make_vectorstore(collection_name, embedding)
-        return EmbeddingService(CollectionService(vectorstore))
-
-    @inject
-    async def build_collection_service(
-        self,
-        collection_name: str,
-        builder: VectorstoreBuilder = Provide["vectorstore_builder"],
-    ) -> CollectionService:
-        embedding = SDSEmbedding()
-        vectorstore = await builder.make_vectorstore(collection_name, embedding)
-        return CollectionService(vectorstore)
+        return EmbeddingService(vectorstore)
 
 
 class DocumentDirector(FeatureDirector):
