@@ -212,7 +212,7 @@ class ServiceDirector(FeatureDirector):
         self,
         collection_name: str,
         embedding_model_name: str,
-        builder: VectorstoreBuilder = Provide["_vectorstore_builder"],
+        builder: VectorstoreBuilder = Provide["vectorstore_builder"],
     ) -> EmbeddingService:
         embedding = await builder.make_embedding(embedding_model_name)
         vectorstore = await builder.make_vectorstore(collection_name, embedding)
